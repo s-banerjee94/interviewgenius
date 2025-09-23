@@ -1,0 +1,31 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: discovery-service
+  config:
+    import: optional:configserver:http://localhost:8888
+
+# Eureka server settings
+eureka:
+  client:
+    register-with-eureka: false   # Eureka Server itself does NOT register
+    fetch-registry: false          # Server does not fetch registry
+  server:
+    wait-time-in-ms-when-sync-empty: 0
+
+# Actuator configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+    shutdown:
+      enabled: true
+  info:
+    env:
+      enabled: true

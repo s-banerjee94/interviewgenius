@@ -1,0 +1,26 @@
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql-interviewgenius
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: interviewgenius_users
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb-interviewgenius
+    environment:
+      MONGO_INITDB_DATABASE: interviewgenius_questions
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+
+volumes:
+  mysql_data:
+  mongodb_data:
