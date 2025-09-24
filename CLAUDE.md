@@ -4,14 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Architecture
 
-This is a Spring Cloud microservices architecture project called "InterviewGenius" built with Java 17 and Spring Boot 3.5.6. The project follows a microservices pattern with five main services:
+This is a Spring Cloud microservices architecture project called "InterviewGenius" built with Java 17 and Spring Boot 3.5.6. The project follows a microservices pattern with six main services:
 
 ### Core Services
 
-1. **Config Service** (port 8888)
+1. **Config Server** (port 8888)
    - Spring Cloud Config Server using native file system configuration
    - Manages centralized configuration for all services
-   - Configurations stored in `config-service/config/` directory
+   - Configurations stored in `config-server/config/` directory
    - Package: `in.connectwithsandeepan.interviewgenius.configserver`
 
 2. **Discovery Service** (port 8761)
@@ -19,7 +19,7 @@ This is a Spring Cloud microservices architecture project called "InterviewGeniu
    - Configured as standalone server (not registering with itself)
    - Package: `in.connectwithsandeepan.interviewgenius.discoveryservice`
 
-3. **Gateway Service** (port not configured)
+3. **Gateway Service**
    - Spring Boot web application for routing
    - Acts as entry point for client requests
    - Package: `in.connectwithsandeepan.interviewgenius.gatewayservice`
@@ -40,6 +40,10 @@ This is a Spring Cloud microservices architecture project called "InterviewGeniu
    - Package: `in.connectwithsandeepan.interviewgenius.questionservice`
    - Includes OpenFeign for inter-service communication
 
+6. **User Service**
+   - Manages user-related functionality
+   - Package: `in.connectwithsandeepan.interviewgenius.userservice`
+
 ### Package Structure
 All services follow the package naming convention: `in.connectwithsandeepan.interviewgenius.<servicename>`
 
@@ -51,18 +55,20 @@ Each service is a separate Maven project with its own `pom.xml`. Use these comma
 
 ```bash
 # Build all services
-cd config-service && ./mvnw clean install
+cd config-server && ./mvnw clean install
 cd ../discovery-service && ./mvnw clean install
 cd ../gateway-service && ./mvnw clean install
 cd ../ai-service && ./mvnw clean install
 cd ../question-service && ./mvnw clean install
+cd ../user-service && ./mvnw clean install
 
 # Run individual services (start in this order for proper dependency resolution)
-cd config-service && ./mvnw spring-boot:run     # Start first (port 8888)
-cd discovery-service && ./mvnw spring-boot:run  # Start second (port 8761)
-cd gateway-service && ./mvnw spring-boot:run    # Start third
-cd ai-service && ./mvnw spring-boot:run         # Start fourth (port 8083)
-cd question-service && ./mvnw spring-boot:run   # Start fifth (port 8082)
+cd config-server && ./mvnw spring-boot:run     # Start first (port 8888)
+cd ../discovery-service && ./mvnw spring-boot:run  # Start second (port 8761)
+cd ../gateway-service && ./mvnw spring-boot:run    # Start third
+cd ../ai-service && ./mvnw spring-boot:run         # Start fourth (port 8083)
+cd ../question-service && ./mvnw spring-boot:run   # Start fifth (port 8082)
+cd ../user-service && ./mvnw spring-boot:run       # Start sixth
 
 # Run tests for individual services
 cd <service-name> && ./mvnw test

@@ -1,0 +1,61 @@
+# Compiled class files
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.rar
+
+# Maven build output
+target/
+dependency-reduced-pom.xml
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.code-workspace
+.eclipse/
+.settings/
+.classpath
+.project
+.claude/
+
+# Logging
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~.nib
+
+# Environment and secret files
+.env
+*.env
+CLAUDE.md
+.claude
+.secrets
+
+# Mac system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Spring Boot
+.springBeans
+
+# Backup files
+*.bak
+*.gho
+*.ori
+*.orig
+*.tmp

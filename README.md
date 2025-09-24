@@ -32,6 +32,7 @@ InterviewGenius follows a microservices architecture with the following services
 ### Business Services
 - **AI Service** (Port 8083): AI-powered question generation using Anthropic Claude
 - **Question Service** (Port 8082): Question storage and management with MongoDB
+- **User Service**: User-related functionality management
 
 ## 🛠️ Technology Stack
 
@@ -77,7 +78,7 @@ mongod
 
 ```bash
 # 1. Start Config Service (must be first)
-cd config-service
+cd config-server
 ./mvnw spring-boot:run
 
 # 2. Start Discovery Service (wait for config service to be ready)
@@ -94,6 +95,10 @@ cd ../ai-service
 
 # 5. Start Question Service
 cd ../question-service
+./mvnw spring-boot:run
+
+# 6. Start User Service
+cd ../user-service
 ./mvnw spring-boot:run
 ```
 
@@ -144,21 +149,6 @@ curl "http://localhost:8082/api/v1/questions?paginated=true&page=0&size=5"
 curl "http://localhost:8082/api/v1/questions/by-language?language=Java"
 ```
 
-## 🧪 Testing
-
-### Run Tests for All Services
-```bash
-# Test individual services
-cd config-service && ./mvnw test
-cd ../discovery-service && ./mvnw test
-cd ../gateway-service && ./mvnw test
-cd ../ai-service && ./mvnw test
-cd ../question-service && ./mvnw test
-```
-
-### Using Postman Collection
-Import the included `InterviewGenius-Postman-Collection.json` file into Postman for comprehensive API testing.
-
 ## 🔧 Configuration
 
 ### Environment Variables
@@ -174,10 +164,6 @@ Default MongoDB connection: `mongodb://localhost:27017/interviewgenius_questions
 - Gateway Service: Not configured
 - AI Service: 8083
 - Question Service: 8082
-
-## 🐳 Docker Support (Future Enhancement)
-
-Docker configurations are planned for future releases to simplify deployment.
 
 ## 📊 Monitoring
 
@@ -212,19 +198,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 👥 Authors
 
 - **Sandeepan** - *Initial work* - [@connectwithsandeepan](https://github.com/connectwithsandeepan)
-
-## 🙏 Acknowledgments
-
-- Spring Boot and Spring Cloud communities
-- Anthropic for Claude AI API
-- MongoDB team for excellent documentation
-- Netflix for Eureka service discovery
-
-## 📞 Support
-
-For support and questions:
-- Open an issue on GitHub
-- Contact: [Your contact information]
 
 ---
 
