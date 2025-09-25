@@ -25,6 +25,12 @@ public class QuestionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(question);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Question> getQuestionById(@PathVariable String id) {
+        Question question = questionService.getQuestionById(id);
+        return ResponseEntity.ok(question);
+    }
+
     @GetMapping
     public ResponseEntity<?> getAllQuestions(
             @RequestParam(defaultValue = "false") boolean paginated,

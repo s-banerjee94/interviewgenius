@@ -16,4 +16,6 @@ public interface QuestionService {
     Page<Question> getQuestionsByDifficulty(String difficulty, Pageable pageable);
     List<Question> getQuestionsByLanguageAndDifficulty(String language, String difficulty);
     Page<Question> getQuestionsByLanguageAndDifficulty(String language, String difficulty, Pageable pageable);
+
+    Question getQuestionById(String id);
 }

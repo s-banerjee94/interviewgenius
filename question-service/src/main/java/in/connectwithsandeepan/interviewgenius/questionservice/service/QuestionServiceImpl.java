@@ -62,4 +62,9 @@ public class QuestionServiceImpl implements QuestionService {
     public Page<Question> getQuestionsByLanguageAndDifficulty(String language, String difficulty, Pageable pageable) {
         return questionRepository.findByProgramingLanguageAndDifficulty(language, difficulty, pageable);
     }
+
+    @Override
+    public Question getQuestionById(String id) {
+        return questionRepository.findById(id).orElseThrow(() -> new RuntimeException("Question not found with id: " + id));
+    }
 }
