@@ -18,6 +18,10 @@ spring:
           uri: lb://user-service
           predicates:
             - Path=/api/v1/users/**
+        - id: useranswer-service
+          uri: lb://useranswer-service
+          predicates:
+            - Path=/api/v1/user-answers/**
 
 server:
   port: 8080
