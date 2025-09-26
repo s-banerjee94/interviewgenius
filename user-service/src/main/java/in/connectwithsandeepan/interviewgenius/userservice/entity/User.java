@@ -63,7 +63,7 @@ public class User {
     private String profileImageUrl;
 
     public enum Role {
-        ADMIN, NORMAL_USER
+        ADMIN, USER
     }
 
     public String getFullName() {

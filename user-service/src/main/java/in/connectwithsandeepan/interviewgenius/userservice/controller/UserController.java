@@ -154,7 +154,7 @@ public class UserController {
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalUsers", userService.getTotalUserCount());
         stats.put("adminUsers", userService.getUserCountByRole(User.Role.ADMIN));
-        stats.put("normalUsers", userService.getUserCountByRole(User.Role.NORMAL_USER));
+        stats.put("normalUsers", userService.getUserCountByRole(User.Role.USER));
         return ResponseEntity.ok(stats);
     }
 }

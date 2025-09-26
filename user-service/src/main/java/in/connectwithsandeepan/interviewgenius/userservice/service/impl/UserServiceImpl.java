@@ -33,7 +33,7 @@ public class UserServiceImpl implements UserService {
             .firstName(userRequest.getFirstName())
             .lastName(userRequest.getLastName())
             .password(userRequest.getPassword()) // TODO: Encode password when security is added
-            .role(userRequest.getRole() != null ? userRequest.getRole() : User.Role.NORMAL_USER)
+            .role(userRequest.getRole() != null ? userRequest.getRole() : User.Role.USER)
             .phoneNumber(userRequest.getPhoneNumber())
             .isActive(true)
             .isVerified(false)
