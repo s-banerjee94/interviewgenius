@@ -5,11 +5,11 @@ spring:
     import: optional:configserver:http://localhost:8888
   cloud:
     config:
-      enabled: false
+      enabled: true
       fail-fast: false
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/interviewgenius}
+      uri: mongodb://localhost:27017/interviewgenius
       auto-index-creation: true
 
 server:

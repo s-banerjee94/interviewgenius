@@ -14,7 +14,7 @@ spring:
       fail-fast: false
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/interviewgenius}
+      uri: ${MONGODB_URI:mongodb+srv://shondhatara94_db_user:PH6wud5CotmMoLoE@cluster0.1sojcyj.mongodb.net/interviewgenius?retryWrites=true&w=majority&appName=Cluster0}
       auto-index-creation: true
 
 
