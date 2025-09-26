@@ -11,4 +11,6 @@ public interface AiService {
     InputTypeQuestion genarateInputTypeQuestionSen();
 
     InputTypeQuestion genarateInputTypeDsaQuestion();
+
+    String transcribeAudio(String filePath);
 }
