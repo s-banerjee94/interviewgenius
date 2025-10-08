@@ -49,3 +49,10 @@ management:
   info:
     env:
       enabled: true
+
+# SpringDoc OpenAPI configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html

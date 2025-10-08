@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users", indexes = {
-    @Index(name = "idx_email", columnList = "email"),
-    @Index(name = "idx_role", columnList = "role")
+        @Index(name = "idx_email", columnList = "email"),
+        @Index(name = "idx_role", columnList = "role")
 })
 @Data
 @NoArgsConstructor
@@ -36,6 +36,10 @@ public class User {
 
     @Column(nullable = false)
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column()
+    private Experience experience;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -65,6 +69,13 @@ public class User {
     public enum Role {
         ADMIN, USER
     }
+
+    public enum Experience {
+        FRESHER,
+        INTERMEDIATE,
+        EXPERIENCED
+    }
+
 
     public String getFullName() {
         return firstName + " " + lastName;

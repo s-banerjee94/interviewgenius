@@ -45,9 +45,7 @@ public interface UserService {
 
     long getUserCountByRole(User.Role role);
 
-    Page<UserResponse> getRecentUsers(int days, Pageable pageable);
+    UserResponse loginUser(String email, String password);
 
-    Page<UserResponse> getActiveUsers(Pageable pageable);
-
-    UserResponse updateLastLogin(Long id);
+    void changePassword(Long userId, String oldPassword, String newPassword);
 }

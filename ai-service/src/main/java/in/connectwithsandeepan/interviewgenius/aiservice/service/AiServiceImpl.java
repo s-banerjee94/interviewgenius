@@ -1,6 +1,7 @@
 package in.connectwithsandeepan.interviewgenius.aiservice.service;
 
 
+import in.connectwithsandeepan.interviewgenius.aiservice.dto.InterviewResponse;
 import in.connectwithsandeepan.interviewgenius.aiservice.entity.InputTypeQuestion;
 import in.connectwithsandeepan.interviewgenius.aiservice.entity.Question;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +11,9 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.openai.OpenAiAudioTranscriptionModel;
 import org.springframework.ai.openai.OpenAiAudioTranscriptionOptions;
 import org.springframework.ai.openai.api.OpenAiAudioApi;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Files;
@@ -24,6 +27,11 @@ public class AiServiceImpl implements AiService{
     private final ChatClient chatClient;
     private final OpenAiAudioTranscriptionModel openAiTranscriptionModel;
 
+    // testing with system prompt
+    private final ChatClient inteviewChatClient;
+    @Value("${interview.prompt.file-path}")
+    private Resource resource;
+
     @Override
     public Question genarateQuestion() {
         Question question = chatClient.prompt()
@@ -36,7 +44,7 @@ public class AiServiceImpl implements AiService{
     }
 
     @Override
-    public InputTypeQuestion genarateInputTypeQuestion() {
+    public InputTypeQuestion generateShortInputTypeQuestion() {
         InputTypeQuestion question = chatClient.prompt()
                 .user("Give java a question that can be answered in one character or in couple of words or sentence")
                 .call()
@@ -47,9 +55,9 @@ public class AiServiceImpl implements AiService{
     }
 
     @Override
-    public InputTypeQuestion genarateInputTypeQuestionSen() {
+    public InputTypeQuestion generateDescriptiveInputTypeQuestion() {
         InputTypeQuestion question = chatClient.prompt()
-                .user("Give java a question that can be answered in couple of sentences, theory and conceptual questions")
+                .user("Give Java a question that can be answered in couple of sentences, theory and conceptual questions, and add the last question if you asked previously.")
                 .call()
                 .entity(InputTypeQuestion.class);
 
@@ -97,5 +105,32 @@ public class AiServiceImpl implements AiService{
         } catch (Exception e) {
             throw new RuntimeException("Error processing audio file: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public String startInterview(String conversationId, String experienceLevel, String language) {
+        return inteviewChatClient.prompt()
+                .system(resource)
+                .system(s -> s.param("experience_level", experienceLevel).param("language", language))
+                .user("Start the interview by asking the first question.")
+                .advisors(a -> a.param("chat_memory_conversation_id", conversationId))
+                .call()
+                .content();
+    }
+
+    @Override
+    public InterviewResponse submitAnswerAndGetNextQuestion(String conversationId, String answer) {
+        String promptText = String.format(
+                "Candidate's answer: %s\n\n" +
+                        "Based on this answer, provide:\n" +
+                        "1. Ask the next relevant question\n",
+                answer
+        );
+
+        return inteviewChatClient.prompt()
+                .user(promptText)
+                .advisors(a -> a.param("chat_memory_conversation_id", conversationId))
+                .call()
+                .entity(InterviewResponse.class);
     }
 }

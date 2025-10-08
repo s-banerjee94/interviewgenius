@@ -3,6 +3,10 @@ package in.connectwithsandeepan.interviewgenius.userservice.service.impl;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.UserRequest;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.UserResponse;
 import in.connectwithsandeepan.interviewgenius.userservice.entity.User;
+import in.connectwithsandeepan.interviewgenius.userservice.exception.EmailAlreadyInUseException;
+import in.connectwithsandeepan.interviewgenius.userservice.exception.InvalidPasswordException;
+import in.connectwithsandeepan.interviewgenius.userservice.exception.UserAlreadyExistsException;
+import in.connectwithsandeepan.interviewgenius.userservice.exception.UserNotFoundException;
 import in.connectwithsandeepan.interviewgenius.userservice.repository.UserRepository;
 import in.connectwithsandeepan.interviewgenius.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +30,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse createUser(UserRequest userRequest) {
         if (existsByEmail(userRequest.getEmail())) {
-            throw new RuntimeException("User with email " + userRequest.getEmail() + " already exists");
+            throw new UserAlreadyExistsException("User with email " + userRequest.getEmail() + " already exists");
         }
 
         User user = User.builder()
@@ -45,11 +50,27 @@ public class UserServiceImpl implements UserService {
         return UserResponse.fromUser(savedUser);
     }
 
+    @Deprecated
+    @Override
+    public UserResponse loginUser(String email, String password) {
+        User user = userRepository.findByEmailAndPassword(email, password)
+                .orElseThrow(() -> new UserNotFoundException("email", email));
+
+        if (!user.getPassword().equals(password)) { // TODO: Use password encoder when security is added
+            throw new InvalidPasswordException();
+        }
+
+        user.setLastLoginAt(LocalDateTime.now());
+        userRepository.save(user);
+
+        return UserResponse.fromUser(user);
+    }
+
     @Override
     @Transactional(readOnly = true)
     public UserResponse getUserById(Long id) {
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
+            .orElseThrow(() -> new UserNotFoundException(id));
         return UserResponse.fromUser(user);
     }
 
@@ -57,7 +78,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public UserResponse getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+            .orElseThrow(() -> new UserNotFoundException("email", email));
         return UserResponse.fromUser(user);
     }
 
@@ -96,20 +117,17 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse updateUser(Long id, UserRequest userRequest) {
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
+            .orElseThrow(() -> new UserNotFoundException(id));
 
         if (!user.getEmail().equals(userRequest.getEmail()) && existsByEmail(userRequest.getEmail())) {
-            throw new RuntimeException("Email " + userRequest.getEmail() + " is already in use");
+            throw new EmailAlreadyInUseException("Email " + userRequest.getEmail() + " is already in use");
         }
 
         user.setEmail(userRequest.getEmail());
         user.setFirstName(userRequest.getFirstName());
         user.setLastName(userRequest.getLastName());
         user.setPhoneNumber(userRequest.getPhoneNumber());
-
-        if (userRequest.getRole() != null) {
-            user.setRole(userRequest.getRole());
-        }
+        user.setExperience(userRequest.getExperience());
 
         User updatedUser = userRepository.save(user);
         log.info("Updated user with ID: {}", updatedUser.getId());
@@ -120,7 +138,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse updateUserStatus(Long id, Boolean isActive) {
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
+            .orElseThrow(() -> new UserNotFoundException(id));
 
         user.setIsActive(isActive);
         User updatedUser = userRepository.save(user);
@@ -132,7 +150,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse verifyUser(Long id) {
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
+            .orElseThrow(() -> new UserNotFoundException(id));
 
         user.setIsVerified(true);
         User updatedUser = userRepository.save(user);
@@ -144,7 +162,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {
-            throw new RuntimeException("User not found with ID: " + id);
+            throw new UserNotFoundException(id);
         }
         userRepository.deleteById(id);
         log.info("Deleted user with ID: {}", id);
@@ -169,28 +187,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public Page<UserResponse> getRecentUsers(int days, Pageable pageable) {
-        LocalDateTime startDate = LocalDateTime.now().minusDays(days);
-        return userRepository.findRecentUsers(startDate, pageable)
-            .map(UserResponse::fromUser);
+    public void changePassword(Long userId, String oldPassword, String newPassword) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UserNotFoundException(userId));
+
+        // Verify old password matches
+        if (!user.getPassword().equals(oldPassword)) { // TODO: Use password encoder when security is added
+            throw new InvalidPasswordException("Old password is incorrect");
+        }
+
+        // Update to new password
+        user.setPassword(newPassword); // TODO: Encode password when security is added
+        userRepository.save(user);
+        log.info("Password changed successfully for user ID: {}", userId);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public Page<UserResponse> getActiveUsers(Pageable pageable) {
-        return userRepository.findActiveUsers(pageable)
-            .map(UserResponse::fromUser);
-    }
-
-    @Override
-    public UserResponse updateLastLogin(Long id) {
-        User user = userRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
-
-        user.setLastLoginAt(LocalDateTime.now());
-        User updatedUser = userRepository.save(user);
-
-        return UserResponse.fromUser(updatedUser);
-    }
 }

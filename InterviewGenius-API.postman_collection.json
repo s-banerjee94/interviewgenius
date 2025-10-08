@@ -1,0 +1,700 @@
+{
+	"info": {
+		"_postman_id": "12345678-1234-1234-1234-123456789012",
+		"name": "InterviewGenius API Collection",
+		"description": "Complete collection of GET endpoints for InterviewGenius microservices",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "AI Service",
+			"item": [
+				{
+					"name": "Get Question",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/ai/question",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai",
+								"question"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Input Type Question",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/ai/inputTypeQuestion",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai",
+								"inputTypeQuestion"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Input Type Question Sec",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/ai/inputTypeQuestionSec",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai",
+								"inputTypeQuestionSec"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get DSA Question",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/ai/dsa",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai",
+								"dsa"
+							]
+						}
+					}
+				},
+				{
+					"name": "Transcribe Audio",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/ai/transcribe",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai",
+								"transcribe"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Question Service",
+			"item": [
+				{
+					"name": "Generate Question",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/questions/generate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"questions",
+								"generate"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Question by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/questions/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"questions",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "507f1f77bcf86cd799439011"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Questions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/questions",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"questions"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Questions by Language",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/questions/by-language?language=Java",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"questions",
+								"by-language"
+							],
+							"query": [
+								{
+									"key": "language",
+									"value": "Java"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Questions by Difficulty",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/questions/by-difficulty?difficulty=Medium",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"questions",
+								"by-difficulty"
+							],
+							"query": [
+								{
+									"key": "difficulty",
+									"value": "Medium"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Filter Questions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/questions/filter?language=Java&difficulty=Easy&topic=Arrays",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"questions",
+								"filter"
+							],
+							"query": [
+								{
+									"key": "language",
+									"value": "Java"
+								},
+								{
+									"key": "difficulty",
+									"value": "Easy"
+								},
+								{
+									"key": "topic",
+									"value": "Arrays"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "User Service",
+			"item": [
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "507f1f77bcf86cd799439011"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User by Email",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/email/:email",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"email",
+								":email"
+							],
+							"variable": [
+								{
+									"key": "email",
+									"value": "user@example.com"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Users by Role",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/role/:role",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"role",
+								":role"
+							],
+							"variable": [
+								{
+									"key": "role",
+									"value": "ADMIN"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Users by Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/status/:isActive",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"status",
+								":isActive"
+							],
+							"variable": [
+								{
+									"key": "isActive",
+									"value": "true"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Search Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/search?name=John&email=john@example.com&role=USER",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"search"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "John"
+								},
+								{
+									"key": "email",
+									"value": "john@example.com"
+								},
+								{
+									"key": "role",
+									"value": "USER"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Recent Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/recent?days=7",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"recent"
+							],
+							"query": [
+								{
+									"key": "days",
+									"value": "7"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Active Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/active",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"active"
+							]
+						}
+					}
+				},
+				{
+					"name": "Check User Exists",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/exists?email=user@example.com",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"exists"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "user@example.com"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/stats",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"stats"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "UserAnswer Service",
+			"item": [
+				{
+					"name": "Get User Answer by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/user-answers/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user-answers",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "507f1f77bcf86cd799439011"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Answers by User ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/user-answers/user/:userId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user-answers",
+								"user",
+								":userId"
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "507f1f77bcf86cd799439011"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Answers by Question ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/user-answers/question/:questionId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user-answers",
+								"question",
+								":questionId"
+							],
+							"variable": [
+								{
+									"key": "questionId",
+									"value": "507f1f77bcf86cd799439011"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Answer by User and Question",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/user-answers/user/:userId/question/:questionId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user-answers",
+								"user",
+								":userId",
+								"question",
+								":questionId"
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "507f1f77bcf86cd799439011"
+								},
+								{
+									"key": "questionId",
+									"value": "507f1f77bcf86cd799439012"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All User Answers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/user-answers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user-answers"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Recent User Answers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/user-answers/recent?days=7&limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user-answers",
+								"recent"
+							],
+							"query": [
+								{
+									"key": "days",
+									"value": "7"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Answer Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/user-answers/stats?userId=507f1f77bcf86cd799439011",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user-answers",
+								"stats"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "507f1f77bcf86cd799439011"
+								}
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}

@@ -1,0 +1,22 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/interviewgenius_useranswers
+
+server:
+  port: 8084
+  servlet:
+    context-path: /api/v1
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

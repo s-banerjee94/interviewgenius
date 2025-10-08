@@ -12,6 +12,7 @@ public class UserResponse {
     private String firstName;
     private String lastName;
     private String fullName;
+    private User.Experience experience;
     private User.Role role;
     private Boolean isActive;
     private Boolean isVerified;
@@ -28,6 +29,7 @@ public class UserResponse {
         response.setFirstName(user.getFirstName());
         response.setLastName(user.getLastName());
         response.setFullName(user.getFullName());
+        response.setExperience(user.getExperience());
         response.setRole(user.getRole());
         response.setIsActive(user.getIsActive());
         response.setIsVerified(user.getIsVerified());

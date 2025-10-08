@@ -49,4 +49,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u WHERE u.lastLoginAt IS NOT NULL ORDER BY u.lastLoginAt DESC")
     Page<User> findActiveUsers(Pageable pageable);
+
+    Optional<User> findByEmailAndPassword(String email, String password);
 }
