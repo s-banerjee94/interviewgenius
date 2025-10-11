@@ -1,5 +1,6 @@
 package in.connectwithsandeepan.interviewgenius.userservice.service;
 
+import in.connectwithsandeepan.interviewgenius.userservice.dto.CreateOAuthUserRequest;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.UserRequest;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.UserResponse;
 import in.connectwithsandeepan.interviewgenius.userservice.entity.User;
@@ -48,4 +49,13 @@ public interface UserService {
     UserResponse loginUser(String email, String password);
 
     void changePassword(Long userId, String oldPassword, String newPassword);
+
+    // Internal auth methods
+    boolean validatePassword(String email, String password);
+
+    UserResponse authenticateUser(String email, String password);
+
+    UserResponse createOAuthUser(CreateOAuthUserRequest request);
+
+    UserResponse linkOAuthProvider(Long userId, User.AuthProvider authProvider, String providerUserId);
 }

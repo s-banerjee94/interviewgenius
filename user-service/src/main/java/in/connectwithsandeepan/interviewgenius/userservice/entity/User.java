@@ -9,6 +9,10 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.Map;
 
 @Entity
 @Table(name = "users", indexes = {
@@ -34,8 +38,29 @@ public class User {
     @Column(nullable = false, length = 50)
     private String lastName;
 
-    @Column(nullable = false)
-    private String password;
+    @Column(nullable = true)
+    private String password; // Nullable for OAuth-only users
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+        name = "user_auth_providers",
+        joinColumns = @JoinColumn(name = "user_id"),
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "auth_provider"})
+    )
+    @Column(name = "auth_provider")
+    @Builder.Default
+    private Set<AuthProvider> authProviders = new HashSet<>();
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+        name = "user_oauth_providers",
+        joinColumns = @JoinColumn(name = "user_id"),
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "provider_name"})
+    )
+    @MapKeyColumn(name = "provider_name")
+    @Column(name = "provider_user_id")
+    @Builder.Default
+    private Map<String, String> oauthProviderIds = new HashMap<>();
 
     @Enumerated(EnumType.STRING)
     @Column()
@@ -76,8 +101,19 @@ public class User {
         EXPERIENCED
     }
 
+    public enum AuthProvider {
+        LOCAL, GOOGLE, GITHUB
+    }
 
     public String getFullName() {
         return firstName + " " + lastName;
+    }
+
+    public boolean hasPasswordAuth() {
+        return authProviders.contains(AuthProvider.LOCAL) && password != null;
+    }
+
+    public boolean hasOAuthProvider(AuthProvider provider) {
+        return authProviders.contains(provider);
     }
 }

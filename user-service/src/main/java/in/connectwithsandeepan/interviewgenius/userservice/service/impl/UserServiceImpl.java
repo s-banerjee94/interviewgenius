@@ -1,5 +1,6 @@
 package in.connectwithsandeepan.interviewgenius.userservice.service.impl;
 
+import in.connectwithsandeepan.interviewgenius.userservice.dto.CreateOAuthUserRequest;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.UserRequest;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.UserResponse;
 import in.connectwithsandeepan.interviewgenius.userservice.entity.User;
@@ -13,10 +14,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Optional;
 
 @Service
@@ -26,6 +29,7 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserResponse createUser(UserRequest userRequest) {
@@ -33,11 +37,15 @@ public class UserServiceImpl implements UserService {
             throw new UserAlreadyExistsException("User with email " + userRequest.getEmail() + " already exists");
         }
 
+        HashSet<User.AuthProvider> providers = new HashSet<>();
+        providers.add(User.AuthProvider.LOCAL);
+
         User user = User.builder()
             .email(userRequest.getEmail())
             .firstName(userRequest.getFirstName())
             .lastName(userRequest.getLastName())
-            .password(userRequest.getPassword()) // TODO: Encode password when security is added
+            .password(passwordEncoder.encode(userRequest.getPassword()))
+            .authProviders(providers)
             .role(userRequest.getRole() != null ? userRequest.getRole() : User.Role.USER)
             .phoneNumber(userRequest.getPhoneNumber())
             .isActive(true)
@@ -192,14 +200,131 @@ public class UserServiceImpl implements UserService {
             .orElseThrow(() -> new UserNotFoundException(userId));
 
         // Verify old password matches
-        if (!user.getPassword().equals(oldPassword)) { // TODO: Use password encoder when security is added
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new InvalidPasswordException("Old password is incorrect");
         }
 
         // Update to new password
-        user.setPassword(newPassword); // TODO: Encode password when security is added
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         log.info("Password changed successfully for user ID: {}", userId);
+    }
+
+    // Internal auth methods
+    @Override
+    public boolean validatePassword(String email, String password) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return false;
+        }
+        User user = userOpt.get();
+        if (user.getPassword() == null) {
+            return false;
+        }
+        return passwordEncoder.matches(password, user.getPassword());
+    }
+
+    @Override
+    public UserResponse authenticateUser(String email, String password) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new InvalidPasswordException("Invalid email or password"));
+
+        if (user.getPassword() == null) {
+            throw new InvalidPasswordException("Invalid email or password");
+        }
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new InvalidPasswordException("Invalid email or password");
+        }
+
+        user.setLastLoginAt(LocalDateTime.now());
+        User updatedUser = userRepository.save(user);
+        log.info("User authenticated successfully: {}", email);
+
+        return UserResponse.fromUser(updatedUser);
+    }
+
+    @Override
+    public UserResponse createOAuthUser(CreateOAuthUserRequest request) {
+        // Try to find existing user first (idempotent operation)
+        Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
+
+        if (existingUser.isPresent()) {
+            User user = existingUser.get();
+            log.info("User with email {} already exists. Linking OAuth provider if needed.", request.getEmail());
+
+            // Check if provider is already linked
+            if (!user.getAuthProviders().contains(request.getAuthProvider())) {
+                // Link the OAuth provider
+                user.getAuthProviders().add(request.getAuthProvider());
+
+                if (request.getProviderUserId() != null) {
+                    user.getOauthProviderIds().put(
+                        request.getAuthProvider().name().toLowerCase(),
+                        request.getProviderUserId()
+                    );
+                }
+
+                user = userRepository.save(user);
+                log.info("Linked {} provider to existing user ID: {}", request.getAuthProvider(), user.getId());
+            } else {
+                log.info("Provider {} already linked to user ID: {}", request.getAuthProvider(), user.getId());
+            }
+
+            return UserResponse.fromUser(user);
+        }
+
+        // User doesn't exist, create new one
+        HashSet<User.AuthProvider> providers = new HashSet<>();
+        providers.add(request.getAuthProvider());
+
+        User user = User.builder()
+            .email(request.getEmail())
+            .firstName(request.getFirstName())
+            .lastName(request.getLastName())
+            .password(null) // OAuth users don't have password
+            .authProviders(providers)
+            .role(User.Role.USER)
+            .isActive(true)
+            .isVerified(true) // OAuth users are pre-verified
+            .profileImageUrl(request.getProfileImageUrl())
+            .build();
+
+        if (request.getProviderUserId() != null) {
+            user.getOauthProviderIds().put(
+                request.getAuthProvider().name().toLowerCase(),
+                request.getProviderUserId()
+            );
+        }
+
+        User savedUser = userRepository.save(user);
+        log.info("Created new OAuth user with ID: {} and email: {} via provider: {}",
+            savedUser.getId(), savedUser.getEmail(), request.getAuthProvider());
+
+        return UserResponse.fromUser(savedUser);
+    }
+
+    @Override
+    public UserResponse linkOAuthProvider(Long userId, User.AuthProvider authProvider, String providerUserId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UserNotFoundException(userId));
+
+        // Check if provider is already linked (idempotent operation)
+        if (user.getAuthProviders().contains(authProvider)) {
+            log.info("Provider {} already linked to user ID: {}. Returning existing user.", authProvider, userId);
+            return UserResponse.fromUser(user);
+        }
+
+        // Link the provider
+        user.getAuthProviders().add(authProvider);
+        if (providerUserId != null) {
+            user.getOauthProviderIds().put(authProvider.name().toLowerCase(), providerUserId);
+        }
+
+        User updatedUser = userRepository.save(user);
+        log.info("Linked {} provider to user ID: {}", authProvider, userId);
+
+        return UserResponse.fromUser(updatedUser);
     }
 
 }
