@@ -72,4 +72,39 @@ public class AuthController {
                 return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
             });
     }
+
+    @GetMapping("/validate")
+    public Mono<ResponseEntity<TokenValidationResponse>> validateToken(@RequestHeader("Authorization") String authHeader) {
+        log.info("Token validation request");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            TokenValidationResponse response = TokenValidationResponse.builder()
+                .valid(false)
+                .message("Invalid authorization header format")
+                .build();
+            return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response));
+        }
+
+        String token = authHeader.substring(7);
+        var claims = jwtTokenProvider.validateToken(token);
+
+        if (claims != null) {
+            log.info("Token is valid for user: {}", claims.get("email"));
+            TokenValidationResponse response = TokenValidationResponse.builder()
+                .valid(true)
+                .email(claims.get("email", String.class))
+                .userId(claims.get("user_id", Long.class))
+                .role(claims.get("role", String.class))
+                .expiresAt(claims.getExpiration())
+                .build();
+            return Mono.just(ResponseEntity.ok(response));
+        } else {
+            log.warn("Invalid token provided");
+            TokenValidationResponse response = TokenValidationResponse.builder()
+                .valid(false)
+                .message("Invalid or expired token")
+                .build();
+            return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response));
+        }
+    }
 }
