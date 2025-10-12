@@ -12,5 +12,4 @@ import lombok.NoArgsConstructor;
 public class LinkOAuthProviderRequest {
     private Long userId;
     private String authProvider;
-    private String providerUserId;
 }

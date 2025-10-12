@@ -5,7 +5,6 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.Set;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Data
@@ -25,7 +24,6 @@ public class UserResponse {
     private LocalDateTime lastLoginAt;
     private String profileImageUrl;
     private Set<String> authProviders;
-    private Map<String, String> oauthProviderIds;
 
     public static UserResponse fromUser(User user) {
         UserResponse response = new UserResponse();
@@ -50,9 +48,6 @@ public class UserResponse {
                 .map(User.AuthProvider::name)
                 .collect(Collectors.toSet())
         );
-
-        // Copy OAuth provider IDs map
-        response.setOauthProviderIds(user.getOauthProviderIds());
 
         return response;
     }

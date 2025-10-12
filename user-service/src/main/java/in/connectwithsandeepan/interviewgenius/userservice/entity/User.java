@@ -10,9 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.HashMap;
 import java.util.Set;
-import java.util.Map;
 
 @Entity
 @Table(name = "users", indexes = {
@@ -50,17 +48,6 @@ public class User {
     @Column(name = "auth_provider")
     @Builder.Default
     private Set<AuthProvider> authProviders = new HashSet<>();
-
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
-        name = "user_oauth_providers",
-        joinColumns = @JoinColumn(name = "user_id"),
-        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "provider_name"})
-    )
-    @MapKeyColumn(name = "provider_name")
-    @Column(name = "provider_user_id")
-    @Builder.Default
-    private Map<String, String> oauthProviderIds = new HashMap<>();
 
     @Enumerated(EnumType.STRING)
     @Column()

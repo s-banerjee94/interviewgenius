@@ -57,5 +57,5 @@ public interface UserService {
 
     UserResponse createOAuthUser(CreateOAuthUserRequest request);
 
-    UserResponse linkOAuthProvider(Long userId, User.AuthProvider authProvider, String providerUserId);
+    UserResponse linkOAuthProvider(Long userId, User.AuthProvider authProvider);
 }

@@ -14,6 +14,5 @@ public class CreateOAuthUserRequest {
     private String firstName;
     private String lastName;
     private String authProvider;
-    private String providerUserId;
     private String profileImageUrl;
 }

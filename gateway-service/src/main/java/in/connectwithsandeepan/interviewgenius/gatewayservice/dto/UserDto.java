@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Set;
-import java.util.Map;
 
 @Data
 @NoArgsConstructor
@@ -18,8 +17,8 @@ public class UserDto {
     private String firstName;
     private String lastName;
     private Set<String> authProviders;
-    private Map<String, String> oauthProviderIds;
     private String role;
     private Boolean isActive;
     private Boolean isVerified;
+    private String profileImageUrl;
 }

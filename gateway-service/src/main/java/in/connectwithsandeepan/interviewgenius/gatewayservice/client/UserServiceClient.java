@@ -69,11 +69,10 @@ public class UserServiceClient {
             .doOnError(error -> log.error("Error creating OAuth user: {}", error.getMessage()));
     }
 
-    public Mono<UserDto> linkOAuthProvider(Long userId, String authProvider, String providerUserId) {
+    public Mono<UserDto> linkOAuthProvider(Long userId, String authProvider) {
         LinkOAuthProviderRequest request = LinkOAuthProviderRequest.builder()
             .userId(userId)
             .authProvider(authProvider)
-            .providerUserId(providerUserId)
             .build();
 
         return webClientBuilder.build()

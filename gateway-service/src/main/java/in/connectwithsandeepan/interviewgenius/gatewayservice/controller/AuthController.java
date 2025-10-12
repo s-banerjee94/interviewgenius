@@ -20,7 +20,7 @@ public class AuthController {
     private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/signup")
-    public Mono<ResponseEntity<AuthResponse>> signup(@RequestBody SignupRequest request) {
+    public Mono<ResponseEntity<Object>> signup(@RequestBody SignupRequest request) {
         log.info("Signup request for email: {}", request.getEmail());
 
         CreateUserRequest userRequest = CreateUserRequest.builder()
@@ -33,20 +33,8 @@ public class AuthController {
 
         return userServiceClient.createUser(userRequest)
             .map(user -> {
-                String token = jwtTokenProvider.generateToken(
-                    user.getId(),
-                    user.getEmail(),
-                    user.getRole(),
-                    user.getAuthProviders()
-                );
-
-                AuthResponse response = AuthResponse.builder()
-                    .token(token)
-                    .user(user)
-                    .build();
-
                 log.info("User signed up successfully: {}", user.getEmail());
-                return ResponseEntity.ok(response);
+                return ResponseEntity.status(HttpStatus.CREATED).build();
             })
             .onErrorResume(error -> {
                 log.error("Signup error: {}", error.getMessage());
@@ -64,12 +52,16 @@ public class AuthController {
                     user.getId(),
                     user.getEmail(),
                     user.getRole(),
-                    user.getAuthProviders()
+                    user.getAuthProviders(),
+                    user.getFirstName(),
+                    user.getLastName(),
+                    user.getProfileImageUrl()
                 );
 
                 AuthResponse response = AuthResponse.builder()
                     .token(token)
-                    .user(user)
+                    .tokenType("Bearer")
+                    .expiresIn(86400L) // 24 hours in seconds
                     .build();
 
                 log.info("User logged in successfully: {}", user.getEmail());

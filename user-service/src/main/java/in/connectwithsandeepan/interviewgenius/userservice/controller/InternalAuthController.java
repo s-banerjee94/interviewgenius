@@ -46,8 +46,7 @@ public class InternalAuthController {
         log.info("Linking provider {} to user ID: {}", request.getAuthProvider(), request.getUserId());
         UserResponse response = userService.linkOAuthProvider(
             request.getUserId(),
-            request.getAuthProvider(),
-            request.getProviderUserId()
+            request.getAuthProvider()
         );
         return ResponseEntity.ok(response);
     }

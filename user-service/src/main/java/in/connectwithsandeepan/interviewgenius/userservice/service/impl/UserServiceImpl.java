@@ -257,14 +257,6 @@ public class UserServiceImpl implements UserService {
             if (!user.getAuthProviders().contains(request.getAuthProvider())) {
                 // Link the OAuth provider
                 user.getAuthProviders().add(request.getAuthProvider());
-
-                if (request.getProviderUserId() != null) {
-                    user.getOauthProviderIds().put(
-                        request.getAuthProvider().name().toLowerCase(),
-                        request.getProviderUserId()
-                    );
-                }
-
                 user = userRepository.save(user);
                 log.info("Linked {} provider to existing user ID: {}", request.getAuthProvider(), user.getId());
             } else {
@@ -290,13 +282,6 @@ public class UserServiceImpl implements UserService {
             .profileImageUrl(request.getProfileImageUrl())
             .build();
 
-        if (request.getProviderUserId() != null) {
-            user.getOauthProviderIds().put(
-                request.getAuthProvider().name().toLowerCase(),
-                request.getProviderUserId()
-            );
-        }
-
         User savedUser = userRepository.save(user);
         log.info("Created new OAuth user with ID: {} and email: {} via provider: {}",
             savedUser.getId(), savedUser.getEmail(), request.getAuthProvider());
@@ -305,7 +290,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse linkOAuthProvider(Long userId, User.AuthProvider authProvider, String providerUserId) {
+    public UserResponse linkOAuthProvider(Long userId, User.AuthProvider authProvider) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new UserNotFoundException(userId));
 
@@ -317,10 +302,6 @@ public class UserServiceImpl implements UserService {
 
         // Link the provider
         user.getAuthProviders().add(authProvider);
-        if (providerUserId != null) {
-            user.getOauthProviderIds().put(authProvider.name().toLowerCase(), providerUserId);
-        }
-
         User updatedUser = userRepository.save(user);
         log.info("Linked {} provider to user ID: {}", authProvider, userId);
 
