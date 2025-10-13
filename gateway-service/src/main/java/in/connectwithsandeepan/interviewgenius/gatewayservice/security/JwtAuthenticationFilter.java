@@ -45,7 +45,7 @@ public class JwtAuthenticationFilter implements WebFilter {
                 // Token is valid, extract user information
                 String email = claims.get("email", String.class);
                 String role = claims.get("role", String.class);
-                Long userId = claims.get("user_id", Long.class);
+                Long userId = claims.get("userId", Long.class);  // Changed from user_id to userId
 
                 log.debug("JWT authenticated: {} (ID: {}) - {} {}", email, userId, method, path);
 
@@ -57,9 +57,11 @@ public class JwtAuthenticationFilter implements WebFilter {
                 UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(email, null, authorities);
 
-                // Add user information to request headers for downstream services
+                // Forward JWT token AND add user information headers for downstream services
+                // This provides flexibility - services can use either JWT parsing or headers
                 ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
-                    .header("X-User-Id", userId.toString())
+                    .header("Authorization", "Bearer " + token)  // Forward JWT token
+                    .header("X-User-Id", userId.toString())      // Also include custom headers
                     .header("X-User-Email", email)
                     .header("X-User-Role", role != null ? role : "USER")
                     .build();

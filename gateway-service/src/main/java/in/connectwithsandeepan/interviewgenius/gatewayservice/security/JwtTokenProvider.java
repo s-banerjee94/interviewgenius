@@ -46,7 +46,7 @@ public class JwtTokenProvider {
         Map<String, Object> claims = new HashMap<>();
 
         // Custom claims (application specific)
-        claims.put("user_id", userId);
+        claims.put("userId", userId);  // Changed from user_id to userId for consistency
         claims.put("email", email);
         claims.put("role", role);
         claims.put("auth_providers", authProviders);
@@ -87,7 +87,7 @@ public class JwtTokenProvider {
     public Long getUserIdFromToken(String token) {
         Claims claims = validateToken(token);
         if (claims != null) {
-            return claims.get("user_id", Long.class);
+            return claims.get("userId", Long.class);  // Changed from user_id to userId
         }
         return null;
     }
