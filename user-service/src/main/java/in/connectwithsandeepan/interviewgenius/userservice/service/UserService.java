@@ -1,6 +1,7 @@
 package in.connectwithsandeepan.interviewgenius.userservice.service;
 
 import in.connectwithsandeepan.interviewgenius.userservice.dto.CreateOAuthUserRequest;
+import in.connectwithsandeepan.interviewgenius.userservice.dto.UpdateUserRequest;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.UserRequest;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.UserResponse;
 import in.connectwithsandeepan.interviewgenius.userservice.entity.User;
@@ -32,7 +33,7 @@ public interface UserService {
         Pageable pageable
     );
 
-    UserResponse updateUser(Long id, UserRequest userRequest);
+    UserResponse updateUser(Long id, UpdateUserRequest updateUserRequest);
 
     UserResponse updateUserStatus(Long id, Boolean isActive);
 

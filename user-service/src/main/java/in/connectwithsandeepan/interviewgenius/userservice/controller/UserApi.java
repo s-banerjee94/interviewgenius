@@ -123,7 +123,7 @@ public interface UserApi {
     @PutMapping("/{id}")
     ResponseEntity<UserResponse> updateUser(
             @PathVariable Long id,
-            @Valid @RequestBody UserRequest userRequest);
+            @Valid @RequestBody UpdateUserRequest updateUserRequest);
 
     @Operation(summary = "Update user status", description = "Activate or deactivate a user")
     @ApiResponses(value = {

@@ -2,6 +2,7 @@ package in.connectwithsandeepan.interviewgenius.userservice.controller;
 
 import in.connectwithsandeepan.interviewgenius.userservice.dto.ChangePasswordRequest;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.LoginRequest;
+import in.connectwithsandeepan.interviewgenius.userservice.dto.UpdateUserRequest;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.UserRequest;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.UserResponse;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.UserStatsResponse;
@@ -97,8 +98,8 @@ public class UserController implements UserApi {
     // User can update their own profile, Admin can update any profile
     @Override
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.userId")
-    public ResponseEntity<UserResponse> updateUser(Long id, UserRequest userRequest) {
-        UserResponse user = userService.updateUser(id, userRequest);
+    public ResponseEntity<UserResponse> updateUser(Long id, UpdateUserRequest updateUserRequest) {
+        UserResponse user = userService.updateUser(id, updateUserRequest);
         return ResponseEntity.ok(user);
     }
 

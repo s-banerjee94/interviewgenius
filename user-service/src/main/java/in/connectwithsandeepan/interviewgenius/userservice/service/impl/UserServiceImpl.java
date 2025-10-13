@@ -1,6 +1,7 @@
 package in.connectwithsandeepan.interviewgenius.userservice.service.impl;
 
 import in.connectwithsandeepan.interviewgenius.userservice.dto.CreateOAuthUserRequest;
+import in.connectwithsandeepan.interviewgenius.userservice.dto.UpdateUserRequest;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.UserRequest;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.UserResponse;
 import in.connectwithsandeepan.interviewgenius.userservice.entity.User;
@@ -123,19 +124,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse updateUser(Long id, UserRequest userRequest) {
+    public UserResponse updateUser(Long id, UpdateUserRequest updateUserRequest) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new UserNotFoundException(id));
 
-        if (!user.getEmail().equals(userRequest.getEmail()) && existsByEmail(userRequest.getEmail())) {
-            throw new EmailAlreadyInUseException("Email " + userRequest.getEmail() + " is already in use");
+        if (!user.getEmail().equals(updateUserRequest.getEmail()) && existsByEmail(updateUserRequest.getEmail())) {
+            throw new EmailAlreadyInUseException("Email " + updateUserRequest.getEmail() + " is already in use");
         }
 
-        user.setEmail(userRequest.getEmail());
-        user.setFirstName(userRequest.getFirstName());
-        user.setLastName(userRequest.getLastName());
-        user.setPhoneNumber(userRequest.getPhoneNumber());
-        user.setExperience(userRequest.getExperience());
+        user.setEmail(updateUserRequest.getEmail());
+        user.setFirstName(updateUserRequest.getFirstName());
+        user.setLastName(updateUserRequest.getLastName());
+        user.setPhoneNumber(updateUserRequest.getPhoneNumber());
+        user.setExperience(updateUserRequest.getExperience());
 
         User updatedUser = userRepository.save(user);
         log.info("Updated user with ID: {}", updatedUser.getId());
@@ -199,7 +200,18 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new UserNotFoundException(userId));
 
-        // Verify old password matches
+        // Check if user has an existing password (OAuth users may not have one)
+        if (user.getPassword() == null) {
+            // OAuth user setting password for the first time - no old password required
+            user.setPassword(passwordEncoder.encode(newPassword));
+            // Add LOCAL auth provider if not already present
+            user.getAuthProviders().add(User.AuthProvider.LOCAL);
+            userRepository.save(user);
+            log.info("First-time password set successfully for OAuth user ID: {}", userId);
+            return;
+        }
+
+        // User has existing password - verify old password matches
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new InvalidPasswordException("Old password is incorrect");
         }
