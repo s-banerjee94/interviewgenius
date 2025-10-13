@@ -2,13 +2,17 @@ package in.connectwithsandeepan.interviewgenius.userservice.controller;
 
 import in.connectwithsandeepan.interviewgenius.userservice.dto.ChangePasswordRequest;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.LoginRequest;
+import in.connectwithsandeepan.interviewgenius.userservice.dto.PdfUploadResponse;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.UpdateUserRequest;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.UserRequest;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.UserResponse;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.UserStatsResponse;
 import in.connectwithsandeepan.interviewgenius.userservice.entity.User;
 import in.connectwithsandeepan.interviewgenius.userservice.service.UserService;
+import in.connectwithsandeepan.interviewgenius.userservice.util.PdfParserUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,13 +20,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
+
+@Slf4j
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
 public class UserController implements UserApi {
 
     private final UserService userService;
+    private final PdfParserUtil pdfParserUtil;
 
     // Public endpoint - anyone can register
     @Override
@@ -160,5 +170,64 @@ public class UserController implements UserApi {
     public ResponseEntity<in.connectwithsandeepan.interviewgenius.userservice.model.Resume> updateResume(Long id, in.connectwithsandeepan.interviewgenius.userservice.model.Resume resume) {
         in.connectwithsandeepan.interviewgenius.userservice.model.Resume updatedResume = userService.updateResume(id, resume);
         return ResponseEntity.ok(updatedResume);
+    }
+
+    // Public endpoint - upload and parse PDF file
+    @Override
+    public ResponseEntity<PdfUploadResponse> uploadPdf(MultipartFile file) {
+        log.info("Received PDF upload request: {}", file.getOriginalFilename());
+
+        // Validate file
+        if (file.isEmpty()) {
+            log.error("Uploaded file is empty");
+            return ResponseEntity.badRequest()
+                    .body(PdfUploadResponse.builder()
+                            .message("File is empty")
+                            .build());
+        }
+
+        // Validate file type
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.equals("application/pdf")) {
+            log.error("Invalid file type: {}", contentType);
+            return ResponseEntity.badRequest()
+                    .body(PdfUploadResponse.builder()
+                            .fileName(file.getOriginalFilename())
+                            .message("Invalid file type. Only PDF files are allowed")
+                            .build());
+        }
+
+        try {
+            // Get page count
+            int pageCount;
+            try (InputStream inputStream = file.getInputStream();
+                 PDDocument document = PDDocument.load(inputStream)) {
+                pageCount = document.getNumberOfPages();
+            }
+
+            // Parse PDF and extract text (this also prints to console)
+            String extractedText = pdfParserUtil.parsePdfAndPrint(file);
+
+            // Build response
+            PdfUploadResponse response = PdfUploadResponse.builder()
+                    .fileName(file.getOriginalFilename())
+                    .fileSizeBytes(file.getSize())
+                    .pageCount(pageCount)
+                    .characterCount(extractedText.length())
+                    .extractedText(extractedText)
+                    .message("PDF parsed successfully")
+                    .build();
+
+            log.info("PDF upload and parsing completed successfully");
+            return ResponseEntity.ok(response);
+
+        } catch (IOException e) {
+            log.error("Error processing PDF: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(PdfUploadResponse.builder()
+                            .fileName(file.getOriginalFilename())
+                            .message("Error processing PDF: " + e.getMessage())
+                            .build());
+        }
     }
 }

@@ -3,6 +3,7 @@ package in.connectwithsandeepan.interviewgenius.userservice.controller;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.*;
 import in.connectwithsandeepan.interviewgenius.userservice.entity.User;
 import in.connectwithsandeepan.interviewgenius.userservice.model.Resume;
+import in.connectwithsandeepan.interviewgenius.userservice.dto.PdfUploadResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,6 +14,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "User Management", description = "APIs for managing users")
 public interface UserApi {
@@ -198,4 +200,13 @@ public interface UserApi {
     ResponseEntity<Resume> updateResume(
             @PathVariable Long id,
             @RequestBody Resume resume);
+
+    @Operation(summary = "Upload and parse PDF", description = "Upload a PDF file to extract and display text content")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "PDF parsed successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid file or file format",
+                    content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
+    })
+    @PostMapping(value = "/upload-pdf", consumes = "multipart/form-data")
+    ResponseEntity<PdfUploadResponse> uploadPdf(@RequestParam("file") MultipartFile file);
 }
