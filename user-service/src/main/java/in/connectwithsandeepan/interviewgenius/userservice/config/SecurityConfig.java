@@ -50,7 +50,7 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/**").authenticated() // Other actuator endpoints require auth
 
                 // Swagger/OpenAPI endpoints
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/user-doc/**").permitAll()
 
                 // All other endpoints require authentication
                 // Fine-grained authorization is handled by @PreAuthorize annotations
