@@ -1,6 +1,7 @@
 package in.connectwithsandeepan.interviewgenius.userservice.dto;
 
 import in.connectwithsandeepan.interviewgenius.userservice.entity.User;
+import in.connectwithsandeepan.interviewgenius.userservice.model.Resume;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -28,4 +29,6 @@ public class UpdateUserRequest {
 
     @Size(min = 10, max = 15, message = "Phone number must be between 10 and 15 characters")
     private String phoneNumber;
+
+    private Resume resume;
 }

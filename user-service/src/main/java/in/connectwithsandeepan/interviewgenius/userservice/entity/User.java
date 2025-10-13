@@ -1,5 +1,7 @@
 package in.connectwithsandeepan.interviewgenius.userservice.entity;
 
+import in.connectwithsandeepan.interviewgenius.userservice.converter.ResumeJsonConverter;
+import in.connectwithsandeepan.interviewgenius.userservice.model.Resume;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -77,6 +79,10 @@ public class User {
 
     @Column(columnDefinition = "TEXT")
     private String profileImageUrl;
+
+    @Column(columnDefinition = "JSON")
+    @Convert(converter = ResumeJsonConverter.class)
+    private Resume resume;
 
     public enum Role {
         ADMIN, USER

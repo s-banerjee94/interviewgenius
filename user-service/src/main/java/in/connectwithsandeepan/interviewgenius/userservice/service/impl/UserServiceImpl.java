@@ -9,6 +9,7 @@ import in.connectwithsandeepan.interviewgenius.userservice.exception.EmailAlread
 import in.connectwithsandeepan.interviewgenius.userservice.exception.InvalidPasswordException;
 import in.connectwithsandeepan.interviewgenius.userservice.exception.UserAlreadyExistsException;
 import in.connectwithsandeepan.interviewgenius.userservice.exception.UserNotFoundException;
+import in.connectwithsandeepan.interviewgenius.userservice.model.Resume;
 import in.connectwithsandeepan.interviewgenius.userservice.repository.UserRepository;
 import in.connectwithsandeepan.interviewgenius.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -137,6 +138,17 @@ public class UserServiceImpl implements UserService {
         user.setLastName(updateUserRequest.getLastName());
         user.setPhoneNumber(updateUserRequest.getPhoneNumber());
         user.setExperience(updateUserRequest.getExperience());
+
+        // Update resume if provided
+        if (updateUserRequest.getResume() != null) {
+            Resume resume = updateUserRequest.getResume();
+            resume.setUserId(id);
+            resume.setCreatedAt(user.getResume() != null && user.getResume().getCreatedAt() != null
+                ? user.getResume().getCreatedAt()
+                : LocalDateTime.now());
+            resume.setUpdatedAt(LocalDateTime.now());
+            user.setResume(resume);
+        }
 
         User updatedUser = userRepository.save(user);
         log.info("Updated user with ID: {}", updatedUser.getId());
@@ -318,6 +330,27 @@ public class UserServiceImpl implements UserService {
         log.info("Linked {} provider to user ID: {}", authProvider, userId);
 
         return UserResponse.fromUser(updatedUser);
+    }
+
+    @Override
+    public Resume updateResume(Long userId, Resume resume) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UserNotFoundException(userId));
+
+        // Set the userId in the resume
+        if (resume != null) {
+            resume.setUserId(userId);
+            resume.setCreatedAt(user.getResume() != null && user.getResume().getCreatedAt() != null
+                ? user.getResume().getCreatedAt()
+                : LocalDateTime.now());
+            resume.setUpdatedAt(LocalDateTime.now());
+        }
+
+        user.setResume(resume);
+        userRepository.save(user);
+        log.info("Updated resume for user ID: {}", userId);
+
+        return resume;
     }
 
 }

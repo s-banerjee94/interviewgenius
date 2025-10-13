@@ -153,4 +153,12 @@ public class UserController implements UserApi {
         userService.changePassword(id, request.getOldPassword(), request.getNewPassword());
         return ResponseEntity.ok().build();
     }
+
+    // User can update their own resume, Admin can update any resume
+    @Override
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.userId")
+    public ResponseEntity<in.connectwithsandeepan.interviewgenius.userservice.model.Resume> updateResume(Long id, in.connectwithsandeepan.interviewgenius.userservice.model.Resume resume) {
+        in.connectwithsandeepan.interviewgenius.userservice.model.Resume updatedResume = userService.updateResume(id, resume);
+        return ResponseEntity.ok(updatedResume);
+    }
 }

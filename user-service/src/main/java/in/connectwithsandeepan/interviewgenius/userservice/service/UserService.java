@@ -5,6 +5,7 @@ import in.connectwithsandeepan.interviewgenius.userservice.dto.UpdateUserRequest
 import in.connectwithsandeepan.interviewgenius.userservice.dto.UserRequest;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.UserResponse;
 import in.connectwithsandeepan.interviewgenius.userservice.entity.User;
+import in.connectwithsandeepan.interviewgenius.userservice.model.Resume;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -59,4 +60,6 @@ public interface UserService {
     UserResponse createOAuthUser(CreateOAuthUserRequest request);
 
     UserResponse linkOAuthProvider(Long userId, User.AuthProvider authProvider);
+
+    Resume updateResume(Long userId, Resume resume);
 }

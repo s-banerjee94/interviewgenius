@@ -1,6 +1,7 @@
 package in.connectwithsandeepan.interviewgenius.userservice.dto;
 
 import in.connectwithsandeepan.interviewgenius.userservice.entity.User;
+import in.connectwithsandeepan.interviewgenius.userservice.model.Resume;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -24,6 +25,7 @@ public class UserResponse {
     private LocalDateTime lastLoginAt;
     private String profileImageUrl;
     private Set<String> authProviders;
+    private Resume resume;
 
     public static UserResponse fromUser(User user) {
         UserResponse response = new UserResponse();
@@ -41,6 +43,7 @@ public class UserResponse {
         response.setUpdatedAt(user.getUpdatedAt());
         response.setLastLoginAt(user.getLastLoginAt());
         response.setProfileImageUrl(user.getProfileImageUrl());
+        response.setResume(user.getResume());
 
         // Convert auth providers enum to string set
         response.setAuthProviders(

@@ -2,6 +2,7 @@ package in.connectwithsandeepan.interviewgenius.userservice.controller;
 
 import in.connectwithsandeepan.interviewgenius.userservice.dto.*;
 import in.connectwithsandeepan.interviewgenius.userservice.entity.User;
+import in.connectwithsandeepan.interviewgenius.userservice.model.Resume;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -185,4 +186,16 @@ public interface UserApi {
     ResponseEntity<Void> changePassword(
             @PathVariable Long id,
             @Valid @RequestBody ChangePasswordRequest request);
+
+    @Operation(summary = "Update user resume", description = "Add or update user resume information")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Resume updated successfully",
+                    content = @Content(schema = @Schema(implementation = Resume.class))),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
+    })
+    @PutMapping("/{id}/resume")
+    ResponseEntity<Resume> updateResume(
+            @PathVariable Long id,
+            @RequestBody Resume resume);
 }
