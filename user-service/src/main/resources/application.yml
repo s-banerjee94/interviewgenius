@@ -13,17 +13,29 @@ spring:
       enabled: false
       fail-fast: false
   datasource:
-    url: jdbc:mysql://localhost:3306/interviewgenius_users
-    username: root
-    password: root
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:interviewgenius_users}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
       jdbc:
         time_zone: UTC
     show-sql: true
     database-platform: org.hibernate.dialect.MySQLDialect
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+      file-size-threshold: 2KB
+
+# JWT Configuration (for parsing tokens from Gateway Service)
+# NOTE: User Service does NOT validate JWT signatures - it trusts the Gateway has already validated
+# This configuration is for documentation purposes
+jwt:
+  parse-only: true  # Indicates this service only parses, does not validate JWTs
 
 # Eureka client settings
 eureka:
@@ -40,12 +52,12 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: health,info,metrics  # Only expose essential endpoints
   endpoint:
     health:
-      show-details: always
+      show-details: when-authorized  # Show details only when authenticated
     shutdown:
-      enabled: true
+      enabled: false  # Disable shutdown endpoint for security
   info:
     env:
       enabled: true
@@ -55,4 +67,4 @@ springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
-    path: /swagger-ui.html
+    path: user-doc/swagger-ui.html
