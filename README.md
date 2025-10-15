@@ -278,7 +278,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 👥 Authors
 
 - **Sandeepan** - *Initial work* - [@connectwithsandeepan](https://github.com/connectwithsandeepan)
-
----
-
-**Built with ❤️ using Spring Boot and Anthropic Claude AI**
