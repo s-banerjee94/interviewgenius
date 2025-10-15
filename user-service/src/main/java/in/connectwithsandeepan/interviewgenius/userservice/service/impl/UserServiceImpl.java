@@ -43,16 +43,16 @@ public class UserServiceImpl implements UserService {
         providers.add(User.AuthProvider.LOCAL);
 
         User user = User.builder()
-            .email(userRequest.getEmail())
-            .firstName(userRequest.getFirstName())
-            .lastName(userRequest.getLastName())
-            .password(passwordEncoder.encode(userRequest.getPassword()))
-            .authProviders(providers)
-            .role(userRequest.getRole() != null ? userRequest.getRole() : User.Role.USER)
-            .phoneNumber(userRequest.getPhoneNumber())
-            .isActive(true)
-            .isVerified(false)
-            .build();
+                .email(userRequest.getEmail())
+                .firstName(userRequest.getFirstName())
+                .lastName(userRequest.getLastName())
+                .password(passwordEncoder.encode(userRequest.getPassword()))
+                .authProviders(providers)
+                .role(userRequest.getRole() != null ? userRequest.getRole() : User.Role.USER)
+                .phoneNumber(userRequest.getPhoneNumber())
+                .isActive(true)
+                .isVerified(false)
+                .build();
 
         User savedUser = userRepository.save(user);
         log.info("Created new user with ID: {} and email: {}", savedUser.getId(), savedUser.getEmail());
@@ -80,7 +80,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public UserResponse getUserById(Long id) {
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new UserNotFoundException(id));
+                .orElseThrow(() -> new UserNotFoundException(id));
         return UserResponse.fromUser(user);
     }
 
@@ -88,7 +88,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public UserResponse getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new UserNotFoundException("email", email));
+                .orElseThrow(() -> new UserNotFoundException("email", email));
         return UserResponse.fromUser(user);
     }
 
@@ -96,38 +96,38 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public Page<UserResponse> getAllUsers(Pageable pageable) {
         return userRepository.findAll(pageable)
-            .map(UserResponse::fromUser);
+                .map(UserResponse::fromUser);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<UserResponse> getUsersByRole(User.Role role, Pageable pageable) {
         return userRepository.findByRole(role, pageable)
-            .map(UserResponse::fromUser);
+                .map(UserResponse::fromUser);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<UserResponse> getUsersByStatus(Boolean isActive, Pageable pageable) {
         return userRepository.findByIsActive(isActive, pageable)
-            .map(UserResponse::fromUser);
+                .map(UserResponse::fromUser);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<UserResponse> getUsersWithFilters(
-        String firstName, String lastName, String email,
-        User.Role role, Boolean isActive, Pageable pageable) {
+            String firstName, String lastName, String email,
+            User.Role role, Boolean isActive, Pageable pageable) {
 
         return userRepository.findUsersWithFilters(
-            firstName, lastName, email, role, isActive, pageable
+                firstName, lastName, email, role, isActive, pageable
         ).map(UserResponse::fromUser);
     }
 
     @Override
     public UserResponse updateUser(Long id, UpdateUserRequest updateUserRequest) {
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new UserNotFoundException(id));
+                .orElseThrow(() -> new UserNotFoundException(id));
 
         if (!user.getEmail().equals(updateUserRequest.getEmail()) && existsByEmail(updateUserRequest.getEmail())) {
             throw new EmailAlreadyInUseException("Email " + updateUserRequest.getEmail() + " is already in use");
@@ -144,8 +144,8 @@ public class UserServiceImpl implements UserService {
             Resume resume = updateUserRequest.getResume();
             resume.setUserId(id);
             resume.setCreatedAt(user.getResume() != null && user.getResume().getCreatedAt() != null
-                ? user.getResume().getCreatedAt()
-                : LocalDateTime.now());
+                    ? user.getResume().getCreatedAt()
+                    : LocalDateTime.now());
             resume.setUpdatedAt(LocalDateTime.now());
             user.setResume(resume);
         }
@@ -159,7 +159,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse updateUserStatus(Long id, Boolean isActive) {
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new UserNotFoundException(id));
+                .orElseThrow(() -> new UserNotFoundException(id));
 
         user.setIsActive(isActive);
         User updatedUser = userRepository.save(user);
@@ -171,7 +171,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse verifyUser(Long id) {
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new UserNotFoundException(id));
+                .orElseThrow(() -> new UserNotFoundException(id));
 
         user.setIsVerified(true);
         User updatedUser = userRepository.save(user);
@@ -210,7 +210,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void changePassword(Long userId, String oldPassword, String newPassword) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException(userId));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         // Check if user has an existing password (OAuth users may not have one)
         if (user.getPassword() == null) {
@@ -251,7 +251,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse authenticateUser(String email, String password) {
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new InvalidPasswordException("Invalid email or password"));
+                .orElseThrow(() -> new InvalidPasswordException("Invalid email or password"));
 
         if (user.getPassword() == null) {
             throw new InvalidPasswordException("Invalid email or password");
@@ -295,20 +295,20 @@ public class UserServiceImpl implements UserService {
         providers.add(request.getAuthProvider());
 
         User user = User.builder()
-            .email(request.getEmail())
-            .firstName(request.getFirstName())
-            .lastName(request.getLastName())
-            .password(null) // OAuth users don't have password
-            .authProviders(providers)
-            .role(User.Role.USER)
-            .isActive(true)
-            .isVerified(true) // OAuth users are pre-verified
-            .profileImageUrl(request.getProfileImageUrl())
-            .build();
+                .email(request.getEmail())
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .password(null) // OAuth users don't have password
+                .authProviders(providers)
+                .role(User.Role.USER)
+                .isActive(true)
+                .isVerified(true) // OAuth users are pre-verified
+                .profileImageUrl(request.getProfileImageUrl())
+                .build();
 
         User savedUser = userRepository.save(user);
         log.info("Created new OAuth user with ID: {} and email: {} via provider: {}",
-            savedUser.getId(), savedUser.getEmail(), request.getAuthProvider());
+                savedUser.getId(), savedUser.getEmail(), request.getAuthProvider());
 
         return UserResponse.fromUser(savedUser);
     }
@@ -316,7 +316,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse linkOAuthProvider(Long userId, User.AuthProvider authProvider) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException(userId));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         // Check if provider is already linked (idempotent operation)
         if (user.getAuthProviders().contains(authProvider)) {
@@ -335,14 +335,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public Resume updateResume(Long userId, Resume resume) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException(userId));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         // Set the userId in the resume
         if (resume != null) {
             resume.setUserId(userId);
             resume.setCreatedAt(user.getResume() != null && user.getResume().getCreatedAt() != null
-                ? user.getResume().getCreatedAt()
-                : LocalDateTime.now());
+                    ? user.getResume().getCreatedAt()
+                    : LocalDateTime.now());
             resume.setUpdatedAt(LocalDateTime.now());
         }
 
@@ -351,6 +351,13 @@ public class UserServiceImpl implements UserService {
         log.info("Updated resume for user ID: {}", userId);
 
         return resume;
+    }
+
+    @Override
+    public Resume getResumeById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id))
+                .getResume();
     }
 
 }

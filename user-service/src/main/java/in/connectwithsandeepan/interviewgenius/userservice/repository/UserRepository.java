@@ -1,6 +1,7 @@
 package in.connectwithsandeepan.interviewgenius.userservice.repository;
 
 import in.connectwithsandeepan.interviewgenius.userservice.entity.User;
+import in.connectwithsandeepan.interviewgenius.userservice.model.Resume;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -51,4 +52,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Page<User> findActiveUsers(Pageable pageable);
 
     Optional<User> findByEmailAndPassword(String email, String password);
+
+//    @Query("SELECT u.resume FROM User u WHERE u.id = :id")
+//    String getResumeById(Long id);
 }

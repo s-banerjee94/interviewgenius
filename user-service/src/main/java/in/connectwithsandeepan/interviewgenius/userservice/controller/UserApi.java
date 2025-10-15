@@ -3,7 +3,6 @@ package in.connectwithsandeepan.interviewgenius.userservice.controller;
 import in.connectwithsandeepan.interviewgenius.userservice.dto.*;
 import in.connectwithsandeepan.interviewgenius.userservice.entity.User;
 import in.connectwithsandeepan.interviewgenius.userservice.model.Resume;
-import in.connectwithsandeepan.interviewgenius.userservice.dto.PdfUploadResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -201,12 +200,18 @@ public interface UserApi {
             @PathVariable Long id,
             @RequestBody Resume resume);
 
-    @Operation(summary = "Upload and parse PDF", description = "Upload a PDF file to extract and display text content")
+    @Operation(summary = "Upload and parse PDF resume", description = "Upload a PDF resume file, extract text, and parse it using AI into structured Resume format")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "PDF parsed successfully"),
+            @ApiResponse(responseCode = "200", description = "PDF parsed successfully and converted to Resume",
+                    content = @Content(schema = @Schema(implementation = Resume.class))),
             @ApiResponse(responseCode = "400", description = "Invalid file or file format",
                     content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
     })
     @PostMapping(value = "/upload-pdf", consumes = "multipart/form-data")
-    ResponseEntity<PdfUploadResponse> uploadPdf(@RequestParam("file") MultipartFile file);
+    ResponseEntity<Resume> uploadPdf(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("userId") Long userId);
+
+    @GetMapping("/{id}/resume")
+    ResponseEntity<Resume> getResume(@PathVariable Long id);
 }

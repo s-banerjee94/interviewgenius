@@ -4,7 +4,9 @@ package in.connectwithsandeepan.interviewgenius.aiservice.service;
 import in.connectwithsandeepan.interviewgenius.aiservice.dto.InterviewResponse;
 import in.connectwithsandeepan.interviewgenius.aiservice.entity.InputTypeQuestion;
 import in.connectwithsandeepan.interviewgenius.aiservice.entity.Question;
+import in.connectwithsandeepan.interviewgenius.aiservice.entity.Resume;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.audio.transcription.AudioTranscriptionPrompt;
 import org.springframework.ai.audio.transcription.AudioTranscriptionResponse;
 import org.springframework.ai.chat.client.ChatClient;
@@ -19,7 +21,9 @@ import org.springframework.stereotype.Service;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AiServiceImpl implements AiService{
@@ -29,8 +33,15 @@ public class AiServiceImpl implements AiService{
 
     // testing with system prompt
     private final ChatClient inteviewChatClient;
-    @Value("${interview.prompt.file-path}")
+
+    // OpenAI ChatClient for resume parsing (better JSON generation)
+    private final ChatClient resumeParserChatClient;
+
+    @Value("${interview.prompt.file-path.for-interview}")
     private Resource resource;
+
+    @Value("${interview.prompt.file-path.for-resume}")
+    private Resource resumeParserPromptResource;
 
     @Override
     public Question genarateQuestion() {
@@ -132,5 +143,59 @@ public class AiServiceImpl implements AiService{
                 .advisors(a -> a.param("chat_memory_conversation_id", conversationId))
                 .call()
                 .entity(InterviewResponse.class);
+    }
+
+    @Override
+    public Resume parseResumeText(String resumeText, Long userId) {
+        log.info("Parsing resume text using OpenAI GPT for userId: {}", userId);
+
+        if (resumeText == null || resumeText.trim().isEmpty()) {
+            throw new IllegalArgumentException("Resume text cannot be null or empty");
+        }
+
+        try {
+            log.debug("Resume text length: {} characters", resumeText.length());
+
+            // Create user prompt with the full resume text
+            String userPrompt = """
+                Resume Text to Parse:
+
+                %s
+                """.formatted(resumeText);
+
+            log.debug("Sending resume parse request to OpenAI with system prompt from template");
+
+            // Call OpenAI with system prompt from template file
+            Resume resume = resumeParserChatClient.prompt()
+                    .system(resumeParserPromptResource)  // System prompt from .st file
+                    .user(userPrompt)                     // User prompt with full resume text
+                    .call()
+                    .entity(Resume.class);
+
+            if (resume != null) {
+
+                // Initialize empty lists if null to avoid NPE
+                if (resume.getWorkExperiences() == null) {
+                    resume.setWorkExperiences(new java.util.ArrayList<>());
+                }
+                if (resume.getEducations() == null) {
+                    resume.setEducations(new java.util.ArrayList<>());
+                }
+                if (resume.getSkills() == null) {
+                    resume.setSkills(new java.util.ArrayList<>());
+                }
+
+                log.info("Successfully parsed resume - Work Experiences: {}, Education: {}, Skills: {}",
+                        resume.getWorkExperiences().size(),
+                        resume.getEducations().size(),
+                        resume.getSkills().size());
+            }
+
+            return resume;
+
+        } catch (Exception e) {
+            log.error("Error parsing resume text: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to parse resume text: " + e.getMessage(), e);
+        }
     }
 }

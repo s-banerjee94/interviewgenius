@@ -62,4 +62,6 @@ public interface UserService {
     UserResponse linkOAuthProvider(Long userId, User.AuthProvider authProvider);
 
     Resume updateResume(Long userId, Resume resume);
+
+    Resume getResumeById(Long id);
 }

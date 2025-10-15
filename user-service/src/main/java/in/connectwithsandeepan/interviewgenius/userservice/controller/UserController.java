@@ -1,29 +1,25 @@
 package in.connectwithsandeepan.interviewgenius.userservice.controller;
 
-import in.connectwithsandeepan.interviewgenius.userservice.dto.ChangePasswordRequest;
-import in.connectwithsandeepan.interviewgenius.userservice.dto.LoginRequest;
-import in.connectwithsandeepan.interviewgenius.userservice.dto.PdfUploadResponse;
-import in.connectwithsandeepan.interviewgenius.userservice.dto.UpdateUserRequest;
-import in.connectwithsandeepan.interviewgenius.userservice.dto.UserRequest;
-import in.connectwithsandeepan.interviewgenius.userservice.dto.UserResponse;
-import in.connectwithsandeepan.interviewgenius.userservice.dto.UserStatsResponse;
+import in.connectwithsandeepan.interviewgenius.userservice.client.AiServiceClient;
+import in.connectwithsandeepan.interviewgenius.userservice.dto.*;
 import in.connectwithsandeepan.interviewgenius.userservice.entity.User;
+import in.connectwithsandeepan.interviewgenius.userservice.model.Resume;
 import in.connectwithsandeepan.interviewgenius.userservice.service.UserService;
 import in.connectwithsandeepan.interviewgenius.userservice.util.PdfParserUtil;
+import in.connectwithsandeepan.interviewgenius.userservice.util.ResumeConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 @Slf4j
 @RestController
@@ -33,6 +29,7 @@ public class UserController implements UserApi {
 
     private final UserService userService;
     private final PdfParserUtil pdfParserUtil;
+    private final AiServiceClient aiServiceClient;
 
     // Public endpoint - anyone can register
     @Override
@@ -167,67 +164,87 @@ public class UserController implements UserApi {
     // User can update their own resume, Admin can update any resume
     @Override
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.userId")
-    public ResponseEntity<in.connectwithsandeepan.interviewgenius.userservice.model.Resume> updateResume(Long id, in.connectwithsandeepan.interviewgenius.userservice.model.Resume resume) {
-        in.connectwithsandeepan.interviewgenius.userservice.model.Resume updatedResume = userService.updateResume(id, resume);
+    public ResponseEntity<Resume> updateResume(Long id, Resume resume) {
+        Resume updatedResume = userService.updateResume(id, resume);
         return ResponseEntity.ok(updatedResume);
     }
 
-    // Public endpoint - upload and parse PDF file
+    // Public endpoint - upload and parse PDF resume file
     @Override
-    public ResponseEntity<PdfUploadResponse> uploadPdf(MultipartFile file) {
-        log.info("Received PDF upload request: {}", file.getOriginalFilename());
+    public ResponseEntity<Resume> uploadPdf(MultipartFile file, Long userId) {
+        log.info("Received PDF resume upload request: {}", file.getOriginalFilename());
+
+        // Validate userId
+        if (userId == null) {
+            log.error("userId is required");
+            return ResponseEntity.badRequest().build();
+        }
 
         // Validate file
         if (file.isEmpty()) {
             log.error("Uploaded file is empty");
-            return ResponseEntity.badRequest()
-                    .body(PdfUploadResponse.builder()
-                            .message("File is empty")
-                            .build());
+            return ResponseEntity.badRequest().build();
         }
 
         // Validate file type
         String contentType = file.getContentType();
         if (contentType == null || !contentType.equals("application/pdf")) {
             log.error("Invalid file type: {}", contentType);
-            return ResponseEntity.badRequest()
-                    .body(PdfUploadResponse.builder()
-                            .fileName(file.getOriginalFilename())
-                            .message("Invalid file type. Only PDF files are allowed")
-                            .build());
+            return ResponseEntity.badRequest().build();
         }
 
         try {
-            // Get page count
-            int pageCount;
-            try (InputStream inputStream = file.getInputStream();
-                 PDDocument document = PDDocument.load(inputStream)) {
-                pageCount = document.getNumberOfPages();
-            }
-
-            // Parse PDF and extract text (this also prints to console)
+            // Extract text from PDF
+            log.info("Extracting text from PDF: {}", file.getOriginalFilename());
             String extractedText = pdfParserUtil.parsePdfAndPrint(file);
 
-            // Build response
-            PdfUploadResponse response = PdfUploadResponse.builder()
-                    .fileName(file.getOriginalFilename())
-                    .fileSizeBytes(file.getSize())
-                    .pageCount(pageCount)
-                    .characterCount(extractedText.length())
-                    .extractedText(extractedText)
-                    .message("PDF parsed successfully")
+            if (extractedText == null || extractedText.trim().isEmpty()) {
+                log.error("No text extracted from PDF");
+                return ResponseEntity.badRequest().build();
+            }
+
+            log.info("Text extracted successfully. Length: {} characters", extractedText.length());
+
+            // Call AI service to parse resume text into structured format
+            log.info("Calling AI service to parse resume text");
+            ResumeParseRequest parseRequest = ResumeParseRequest.builder()
+                    .resumeText(extractedText)
+                    .userId(userId)
                     .build();
 
-            log.info("PDF upload and parsing completed successfully");
-            return ResponseEntity.ok(response);
+            ResponseEntity<AiResumeResponse> aiResponse = aiServiceClient.parseResume(parseRequest);
+
+            if (aiResponse.getStatusCode().is2xxSuccessful() && aiResponse.getBody() != null) {
+                AiResumeResponse aiResumeResponse = aiResponse.getBody();
+                Resume userServiceResume = ResumeConverter.convertToUserServiceResume(aiResumeResponse, userId);
+                log.info("Resume parsed and converted successfully - Work Experiences: {}, Education: {}, Skills: {}",
+                        userServiceResume.getWorkExperiences().size(),
+                        userServiceResume.getEducations().size(),
+                        userServiceResume.getSkills().size());
+
+                // Save resume to user entity in MySQL
+                Resume savedResume = userService.updateResume(userId, userServiceResume);
+                log.info("Resume saved to user entity in database for userId: {}", userId);
+
+                return ResponseEntity.ok(savedResume);
+            } else {
+                log.error("AI service returned unsuccessful response");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
 
         } catch (IOException e) {
             log.error("Error processing PDF: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(PdfUploadResponse.builder()
-                            .fileName(file.getOriginalFilename())
-                            .message("Error processing PDF: " + e.getMessage())
-                            .build());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (Exception e) {
+            log.error("Error calling AI service: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @Override
+    public ResponseEntity<Resume> getResume(Long id) {
+        log.info("Getting resume for user: {}", id);
+        Resume resume = userService.getResumeById(id);
+        return ResponseEntity.ok(resume);
     }
 }

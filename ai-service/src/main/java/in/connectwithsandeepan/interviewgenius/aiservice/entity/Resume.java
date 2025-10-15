@@ -1,4 +1,4 @@
-package in.connectwithsandeepan.interviewgenius.userservice.model;
+package in.connectwithsandeepan.interviewgenius.aiservice.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,10 +17,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class Resume {
-
-
-    private Long userId;
-
     @Builder.Default
     private List<WorkExperience> workExperiences = new ArrayList<>();
 
@@ -28,10 +24,6 @@ public class Resume {
     private List<Education> educations = new ArrayList<>();
 
     @Builder.Default
-    private List<Skill> skills = new ArrayList<>();
+    private List<String> skills = new ArrayList<>();
 
-
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
 }
