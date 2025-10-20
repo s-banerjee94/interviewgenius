@@ -7,6 +7,10 @@ import in.connectwithsandeepan.interviewgenius.interviewservice.entity.QuestionA
 import in.connectwithsandeepan.interviewgenius.interviewservice.exception.*;
 import in.connectwithsandeepan.interviewgenius.interviewservice.repository.InterviewSessionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -185,5 +189,26 @@ public class InterviewService {
                 throw new SessionTimeNotCompletedException(remainingMinutes);
             }
         }
+    }
+
+    public List<SessionListDto> getAllSessions(String userId, boolean pagination, int page, int size) {
+        List<InterviewSession> sessions;
+
+        if (pagination) {
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "startTime"));
+            Page<InterviewSession> sessionPage = repository.findByUserId(userId, pageable);
+            sessions = sessionPage.getContent();
+        } else {
+            sessions = repository.findByUserId(userId, Sort.by(Sort.Direction.DESC, "startTime"));
+        }
+
+        return sessions.stream()
+                .map(session -> SessionListDto.builder()
+                        .sessionId(session.getId())
+                        .language(session.getLanguage())
+                        .startTime(session.getStartTime())
+                        .experienceLevel(session.getExperienceLevel())
+                        .build())
+                .collect(Collectors.toList());
     }
 }

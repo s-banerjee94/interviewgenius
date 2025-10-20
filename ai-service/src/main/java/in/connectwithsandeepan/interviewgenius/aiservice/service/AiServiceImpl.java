@@ -107,7 +107,7 @@ public class AiServiceImpl implements AiService{
             OpenAiAudioApi.TranscriptResponseFormat responseFormat = OpenAiAudioApi.TranscriptResponseFormat.JSON;
             OpenAiAudioTranscriptionOptions options = OpenAiAudioTranscriptionOptions.builder()
                     .responseFormat(responseFormat)
-                    .prompt("Transcribe the following audio to text")
+                    .prompt("Transcribe the following audio to English text only. if not english audio return empty string")
                     .build();
             AudioTranscriptionPrompt transcriptionPrompt = new AudioTranscriptionPrompt(audioFile, options);
             AudioTranscriptionResponse response = openAiTranscriptionModel.call(transcriptionPrompt);

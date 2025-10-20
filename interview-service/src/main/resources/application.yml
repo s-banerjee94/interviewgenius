@@ -20,6 +20,12 @@ server:
   servlet:
     context-path: /api/v1
 
+springdoc:
+  swagger-ui:
+    path: /interview-service/swagger-ui.html
+  api-docs:
+    path: /interview-service/v3/api-docs
+
 eureka:
   client:
     service-url:
