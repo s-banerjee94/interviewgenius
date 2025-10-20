@@ -13,7 +13,6 @@ services:
       MYSQL_DATABASE: interviewgenius_users
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./docker/mysql-init:/docker-entrypoint-initdb.d
     networks:
       - interviewgenius-net
     healthcheck:
@@ -44,9 +43,7 @@ services:
   # ==========================================
 
   discovery-service:
-    build:
-      context: ./discovery-service
-      dockerfile: Dockerfile
+    image: codewithsandy/interviewgenius-discovery:latest
     container_name: interviewgenius-discovery
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -64,9 +61,7 @@ services:
     restart: unless-stopped
 
   gateway-service:
-    build:
-      context: ./gateway-service
-      dockerfile: Dockerfile
+    image: codewithsandy/interviewgenius-gateway:latest
     container_name: interviewgenius-gateway
     ports:
       - "8080:8080"  # Only exposed port
@@ -92,9 +87,7 @@ services:
   # ==========================================
 
   user-service:
-    build:
-      context: ./user-service
-      dockerfile: Dockerfile
+    image: codewithsandy/interviewgenius-user:latest
     container_name: interviewgenius-user
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -114,9 +107,7 @@ services:
     restart: unless-stopped
 
   ai-service:
-    build:
-      context: ./ai-service
-      dockerfile: Dockerfile
+    image: codewithsandy/interviewgenius-ai:latest
     container_name: interviewgenius-ai
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -138,9 +129,7 @@ services:
     restart: unless-stopped
 
   interview-service:
-    build:
-      context: ./interview-service
-      dockerfile: Dockerfile
+    image: codewithsandy/interviewgenius-interview:latest
     container_name: interviewgenius-interview
     environment:
       - SPRING_PROFILES_ACTIVE=docker

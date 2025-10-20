@@ -1,0 +1,304 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # Databases
+  # ==========================================
+
+  mysql:
+    image: mysql:8.0
+    container_name: interviewgenius-mysql-dev
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: interviewgenius_users
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-dev-data:/var/lib/mysql
+    networks:
+      - interviewgenius-dev-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  mongodb:
+    image: mongo:7.0
+    container_name: interviewgenius-mongodb-dev
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-dev-data:/data/db
+    networks:
+      - interviewgenius-dev-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ==========================================
+  # Infrastructure Services - Development Mode
+  # ==========================================
+
+  discovery-service:
+    build:
+      context: ./discovery-service
+      dockerfile: Dockerfile
+    container_name: interviewgenius-discovery-dev
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+      - EUREKA_INSTANCE_HOSTNAME=discovery-service
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
+      - EUREKA_CLIENT_FETCH_REGISTRY=false
+    volumes:
+      - ./discovery-service/src:/app/src
+      - ./discovery-service/target:/app/target
+      - maven-cache:/root/.m2
+    networks:
+      - interviewgenius-dev-net
+    develop:
+      watch:
+        - action: rebuild
+          path: ./discovery-service/pom.xml
+        - action: rebuild
+          path: ./discovery-service/src
+          target: /app/src
+
+  gateway-service:
+    build:
+      context: ./gateway-service
+      dockerfile: Dockerfile
+    container_name: interviewgenius-gateway-dev
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+      - EUREKA_DEFAULT_ZONE=http://discovery-service:8761/eureka/
+      - JWT_SECRET=dev_jwt_secret_key_minimum_256_bits_long_for_testing_purposes_only
+      - JWT_ISSUER=interviewgenius
+      - JWT_AUDIENCE=interviewgenius-users
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-your_google_client_id}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-your_google_client_secret}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-your_github_client_id}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-your_github_client_secret}
+    volumes:
+      - ./gateway-service/src:/app/src
+      - ./gateway-service/target:/app/target
+      - maven-cache:/root/.m2
+    depends_on:
+      discovery-service:
+        condition: service_started
+    networks:
+      - interviewgenius-dev-net
+    develop:
+      watch:
+        - action: rebuild
+          path: ./gateway-service/pom.xml
+        - action: rebuild
+          path: ./gateway-service/src
+          target: /app/src
+
+  # ==========================================
+  # Business Services - Development Mode
+  # ==========================================
+
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    container_name: interviewgenius-user-dev
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=interviewgenius_users
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    volumes:
+      - ./user-service/src:/app/src
+      - ./user-service/target:/app/target
+      - maven-cache:/root/.m2
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+    networks:
+      - interviewgenius-dev-net
+    develop:
+      watch:
+        - action: rebuild
+          path: ./user-service/pom.xml
+        - action: rebuild
+          path: ./user-service/src
+          target: /app/src
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: interviewgenius-ai-dev
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+      - MYSQL_URL=jdbc:mysql://mysql:3306/interviewgenius_ai?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      - MYSQL_USERNAME=root
+      - MYSQL_PASSWORD=root
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - INTERVIEW_PROMPT_PATH=file:/app/prompt/interview-chatclient-anthropic-1.st
+      - RESUME_PROMPT_PATH=file:/app/prompt/resume-parser.st
+    volumes:
+      - ./ai-service/src:/app/src
+      - ./ai-service/target:/app/target
+      - ./ai-service/prompt:/app/prompt
+      - maven-cache:/root/.m2
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+    networks:
+      - interviewgenius-dev-net
+    develop:
+      watch:
+        - action: rebuild
+          path: ./ai-service/pom.xml
+        - action: rebuild
+          path: ./ai-service/src
+          target: /app/src
+        - action: sync
+          path: ./ai-service/prompt
+          target: /app/prompt
+
+  interview-service:
+    build:
+      context: ./interview-service
+      dockerfile: Dockerfile
+    container_name: interviewgenius-interview-dev
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/interviewgenius
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    volumes:
+      - ./interview-service/src:/app/src
+      - ./interview-service/target:/app/target
+      - interview-dev-uploads:/app/uploads
+      - maven-cache:/root/.m2
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+    networks:
+      - interviewgenius-dev-net
+    develop:
+      watch:
+        - action: rebuild
+          path: ./interview-service/pom.xml
+        - action: rebuild
+          path: ./interview-service/src
+          target: /app/src
+
+  question-service:
+    build:
+      context: ./question-service
+      dockerfile: Dockerfile
+    container_name: interviewgenius-question-dev
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/interviewgenius
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    volumes:
+      - ./question-service/src:/app/src
+      - ./question-service/target:/app/target
+      - maven-cache:/root/.m2
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+    networks:
+      - interviewgenius-dev-net
+    develop:
+      watch:
+        - action: rebuild
+          path: ./question-service/pom.xml
+        - action: rebuild
+          path: ./question-service/src
+          target: /app/src
+
+  useranswer-service:
+    build:
+      context: ./useranswer-service
+      dockerfile: Dockerfile
+    container_name: interviewgenius-useranswer-dev
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/interviewgenius
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    volumes:
+      - ./useranswer-service/src:/app/src
+      - ./useranswer-service/target:/app/target
+      - maven-cache:/root/.m2
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+    networks:
+      - interviewgenius-dev-net
+    develop:
+      watch:
+        - action: rebuild
+          path: ./useranswer-service/pom.xml
+        - action: rebuild
+          path: ./useranswer-service/src
+          target: /app/src
+
+# ==========================================
+# Networks
+# ==========================================
+
+networks:
+  interviewgenius-dev-net:
+    driver: bridge
+    name: interviewgenius-dev-network
+
+# ==========================================
+# Volumes
+# ==========================================
+
+volumes:
+  mysql-dev-data:
+    name: interviewgenius-mysql-dev-data
+  mongodb-dev-data:
+    name: interviewgenius-mongodb-dev-data
+  interview-dev-uploads:
+    name: interviewgenius-dev-uploads
+  maven-cache:
+    name: interviewgenius-maven-cache

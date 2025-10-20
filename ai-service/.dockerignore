@@ -1,0 +1,41 @@
+# Maven build artifacts
+target/
+!target/*.jar
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Documentation
+README.md
+*.md
+
+# Logs
+*.log
+logs/
+
+# Test files
+**/*Test.java
+**/test/
+
+# Keep prompt templates - they're needed at runtime
+!prompt/

@@ -37,7 +37,6 @@ logs/
 .env
 *.env
 CLAUDE.md
-.claude
 .secrets
 
 # Mac system files
@@ -54,10 +53,9 @@ Desktop.ini
 .springBeans
 
 # Backup files
-*.bak
 *.gho
 *.ori
 *.orig
-*.tmp
 nul
-CLAUDE.md
+uploads/
+guide/
