@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,13 +26,13 @@ public class FileUploadService {
             "audio/ogg", "audio/aac", "audio/flac", "audio/x-ms-wma"
     );
 
-    public UploadResponseDto uploadFile(MultipartFile file, String userId, String userName, String sessionId) {
+    public UploadResponseDto uploadFile(MultipartFile file, String userId, String email, String sessionId) {
         try {
             if (file.isEmpty()) {
                 throw new FileUploadException("Cannot upload empty file");
             }
 
-            String uploadDir = System.getProperty("user.dir") + "/uploads/" + userId + "_" + userName + "/" + sessionId + "/";
+            String uploadDir = System.getProperty("user.dir") + "/uploads/" + userId + "_" + email + "/" + sessionId + "/";
 
             Path uploadPath = Paths.get(uploadDir);
             if (!Files.exists(uploadPath)) {
@@ -53,9 +52,9 @@ public class FileUploadService {
             log.info("File uploaded successfully: {}", filePath);
 
             return new UploadResponseDto(
-                userId,
-                sessionId,
-                filePath.toString()
+                    userId,
+                    sessionId,
+                    filePath.toString()
             );
         } catch (IOException e) {
             log.error("File upload failed", e);

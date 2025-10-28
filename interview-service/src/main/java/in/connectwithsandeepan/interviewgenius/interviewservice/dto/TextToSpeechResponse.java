@@ -1,15 +1,16 @@
 package in.connectwithsandeepan.interviewgenius.interviewservice.dto;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class QuestionDto {
-    private String question;
-    private String audioBase64;
+public class TextToSpeechResponse {
+    private String filePath;
+    private Long fileSizeBytes;
 }

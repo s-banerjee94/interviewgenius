@@ -1,11 +1,7 @@
 package in.connectwithsandeepan.interviewgenius.interviewservice.controller;
 
 
-import in.connectwithsandeepan.interviewgenius.interviewservice.dto.AnswerSubmissionResponseDto;
-import in.connectwithsandeepan.interviewgenius.interviewservice.dto.QuestionDto;
-import in.connectwithsandeepan.interviewgenius.interviewservice.dto.SessionDetailsDto;
-import in.connectwithsandeepan.interviewgenius.interviewservice.dto.SessionListDto;
-import in.connectwithsandeepan.interviewgenius.interviewservice.dto.UploadResponseDto;
+import in.connectwithsandeepan.interviewgenius.interviewservice.dto.*;
 import in.connectwithsandeepan.interviewgenius.interviewservice.entity.InterviewSession;
 import in.connectwithsandeepan.interviewgenius.interviewservice.service.FileUploadService;
 import in.connectwithsandeepan.interviewgenius.interviewservice.service.InterviewService;
@@ -38,8 +34,9 @@ public class InterviewController implements InterviewControllerApi {
     @Override
     @GetMapping("/{sessionId}/question")
     public ResponseEntity<QuestionDto> getFirstQuestion(
-            @PathVariable String sessionId) {
-        QuestionDto question = interviewService.getFirstQuestion(sessionId);
+            @PathVariable String sessionId,
+            @RequestHeader("X-User-Id") String userId) {
+        QuestionDto question = interviewService.getFirstQuestion(sessionId, userId);
         return ResponseEntity.ok(question);
     }
 
@@ -65,10 +62,10 @@ public class InterviewController implements InterviewControllerApi {
     public ResponseEntity<AnswerSubmissionResponseDto> submitAnswer(
             @PathVariable String sessionId,
             @RequestParam("file") MultipartFile file,
-            @RequestParam("userId") String userId,
-            @RequestParam("userName") String userName) {
-        UploadResponseDto uploadResponse = fileUploadService.uploadFile(file, userId, userName, sessionId);
-        AnswerSubmissionResponseDto response = interviewService.submitAnswer(sessionId, uploadResponse.getUploadFileLocation());
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Email") String email) {
+        UploadResponseDto uploadResponse = fileUploadService.uploadFile(file, userId, email, sessionId);
+        AnswerSubmissionResponseDto response = interviewService.submitAnswer(sessionId, uploadResponse.getUploadFileLocation(), userId);
         return ResponseEntity.ok(response);
     }
 

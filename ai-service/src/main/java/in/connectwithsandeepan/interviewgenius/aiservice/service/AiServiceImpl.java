@@ -2,6 +2,7 @@ package in.connectwithsandeepan.interviewgenius.aiservice.service;
 
 
 import in.connectwithsandeepan.interviewgenius.aiservice.dto.InterviewResponse;
+import in.connectwithsandeepan.interviewgenius.aiservice.dto.TextToSpeechResponse;
 import in.connectwithsandeepan.interviewgenius.aiservice.entity.InputTypeQuestion;
 import in.connectwithsandeepan.interviewgenius.aiservice.entity.Question;
 import in.connectwithsandeepan.interviewgenius.aiservice.entity.Resume;
@@ -10,26 +11,33 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.audio.transcription.AudioTranscriptionPrompt;
 import org.springframework.ai.audio.transcription.AudioTranscriptionResponse;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.openai.OpenAiAudioSpeechModel;
+import org.springframework.ai.openai.OpenAiAudioSpeechOptions;
 import org.springframework.ai.openai.OpenAiAudioTranscriptionModel;
 import org.springframework.ai.openai.OpenAiAudioTranscriptionOptions;
 import org.springframework.ai.openai.api.OpenAiAudioApi;
+import org.springframework.ai.openai.audio.speech.SpeechPrompt;
+import org.springframework.ai.openai.audio.speech.SpeechResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AiServiceImpl implements AiService{
+public class AiServiceImpl implements AiService {
 
     private final ChatClient chatClient;
     private final OpenAiAudioTranscriptionModel openAiTranscriptionModel;
+    private final OpenAiAudioSpeechModel openAiAudioSpeechModel;
 
     // testing with system prompt
     private final ChatClient inteviewChatClient;
@@ -42,6 +50,9 @@ public class AiServiceImpl implements AiService{
 
     @Value("${interview.prompt.file-path.for-resume}")
     private Resource resumeParserPromptResource;
+
+    @Value("${tts.output.directory:./uploads/audio}")
+    private String ttsOutputDirectory;
 
     @Override
     public Question genarateQuestion() {
@@ -119,6 +130,46 @@ public class AiServiceImpl implements AiService{
     }
 
     @Override
+    public TextToSpeechResponse textToSpeech(String text, String voice, String userId) {
+        if (text == null || text.trim().isEmpty()) {
+            throw new IllegalArgumentException("Text is required");
+        }
+
+        String selectedVoice = (voice == null || voice.trim().isEmpty()) ? "alloy" : voice;
+
+        try {
+            // Create user-specific directory: uploads/{userId}
+            Path userDir = Paths.get("uploads", userId);
+            Files.createDirectories(userDir);
+
+            // Generate file path
+            String filename = "tts_" + UUID.randomUUID() + ".mp3";
+            Path outputPath = userDir.resolve(filename);
+
+            // Build speech options
+            OpenAiAudioSpeechOptions speechOptions = OpenAiAudioSpeechOptions.builder()
+                    .responseFormat(OpenAiAudioApi.SpeechRequest.AudioResponseFormat.MP3)
+                    .speed(1.0f)
+                    .build();
+
+            // Generate and save audio
+            SpeechResponse response = openAiAudioSpeechModel.call(new SpeechPrompt(text, speechOptions));
+            byte[] audioBytes = response.getResult().getOutput();
+            try (FileOutputStream fos = new FileOutputStream(outputPath.toFile())) {
+                fos.write(audioBytes);
+            }
+
+            return TextToSpeechResponse.builder()
+                    .filePath(outputPath.toString())
+                    .fileSizeBytes((long) audioBytes.length)
+                    .build();
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error creating output file: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
     public String startInterview(String conversationId, String experienceLevel, String language) {
         return inteviewChatClient.prompt()
                 .system(resource)
@@ -158,10 +209,10 @@ public class AiServiceImpl implements AiService{
 
             // Create user prompt with the full resume text
             String userPrompt = """
-                Resume Text to Parse:
-
-                %s
-                """.formatted(resumeText);
+                    Resume Text to Parse:
+                    
+                    %s
+                    """.formatted(resumeText);
 
             log.debug("Sending resume parse request to OpenAI with system prompt from template");
 

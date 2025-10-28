@@ -1,8 +1,6 @@
 package in.connectwithsandeepan.interviewgenius.aiservice.controller;
 
-import in.connectwithsandeepan.interviewgenius.aiservice.dto.InterviewResponse;
-import in.connectwithsandeepan.interviewgenius.aiservice.dto.InterviewStartResponse;
-import in.connectwithsandeepan.interviewgenius.aiservice.dto.ResumeParseRequest;
+import in.connectwithsandeepan.interviewgenius.aiservice.dto.*;
 import in.connectwithsandeepan.interviewgenius.aiservice.entity.InputTypeQuestion;
 import in.connectwithsandeepan.interviewgenius.aiservice.entity.Question;
 import in.connectwithsandeepan.interviewgenius.aiservice.entity.Resume;
@@ -51,6 +49,13 @@ public class AiController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error processing audio file: " + e.getMessage());
         }
+    }
+
+    @PostMapping("/text-to-speech")
+    public TextToSpeechResponse textToSpeech(
+            @RequestHeader("X-User-Id") String userId,
+            @RequestBody TextToSpeechRequest request) {
+        return aiService.textToSpeech(request.getText(), request.getVoice(), userId);
     }
 
     @PostMapping("/interview/start")

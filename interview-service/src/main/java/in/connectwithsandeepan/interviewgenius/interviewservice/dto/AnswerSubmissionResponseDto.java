@@ -13,4 +13,5 @@ public class AnswerSubmissionResponseDto {
     private String sessionStatus;
     private FeedbackDto feedback;
     private String nextQuestion;
+    private String audioBase64;
 }

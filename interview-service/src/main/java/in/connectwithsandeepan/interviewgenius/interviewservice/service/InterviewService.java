@@ -7,19 +7,25 @@ import in.connectwithsandeepan.interviewgenius.interviewservice.entity.QuestionA
 import in.connectwithsandeepan.interviewgenius.interviewservice.exception.*;
 import in.connectwithsandeepan.interviewgenius.interviewservice.repository.InterviewSessionRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class InterviewService {
@@ -43,7 +49,7 @@ public class InterviewService {
     }
 
 
-    public QuestionDto getFirstQuestion(String sessionId) {
+    public QuestionDto getFirstQuestion(String sessionId, String userId) {
         InterviewSession session = repository.findById(sessionId)
                 .orElseThrow(() -> new SessionNotFoundException(sessionId, "Cannot get first question"));
 
@@ -53,11 +59,29 @@ public class InterviewService {
 
         // Get the first question from AI interview chat client
         InterviewStartResponseDto response = aiClient.startInterview(
-            sessionId,
-            session.getExperienceLevel(),
-            session.getLanguage()
+                sessionId,
+                session.getExperienceLevel(),
+                session.getLanguage()
         );
+        TextToSpeechRequest request = new TextToSpeechRequest();
+        request.setText(response.getQuestion());
+        TextToSpeechResponse textToSpeechResponse = aiClient.textToSpeech(userId, request);
         String questionText = response.getQuestion();
+
+        // Encode audio file to Base64
+        String audioBase64 = "";
+        if (textToSpeechResponse != null && textToSpeechResponse.getFilePath() != null) {
+            try {
+                Path audioFilePath = Paths.get(textToSpeechResponse.getFilePath());
+                byte[] audioBytes = Files.readAllBytes(audioFilePath);
+                String base64Audio = Base64.getEncoder().encodeToString(audioBytes);
+                audioBase64 = "data:audio/mpeg;base64," + base64Audio;
+                log.info("Successfully encoded audio file to Base64 for session: {}", sessionId);
+            } catch (Exception e) {
+                log.warn("Failed to read or encode audio file for session {}: {}", sessionId, e.getMessage());
+                audioBase64 = "";
+            }
+        }
 
         // Create new QuestionAnswer for the first question
         QuestionAnswer qa = new QuestionAnswer();
@@ -67,10 +91,13 @@ public class InterviewService {
         session.getQuestionAnswers().add(qa);
         repository.save(session);
 
-        return QuestionDto.builder().question(questionText).build();
+        return QuestionDto.builder()
+                .question(questionText)
+                .audioBase64(audioBase64)
+                .build();
     }
 
-    public AnswerSubmissionResponseDto submitAnswer(String sessionId, String audioFilePath) {
+    public AnswerSubmissionResponseDto submitAnswer(String sessionId, String audioFilePath, String userId) {
         InterviewSession session = repository.findById(sessionId)
                 .orElseThrow(() -> new SessionNotFoundException(sessionId, "Cannot submit answer"));
 
@@ -100,6 +127,24 @@ public class InterviewService {
 
         // Get feedback and next question from interview chat client
         InterviewResponseDto interviewResponse = aiClient.submitAnswer(sessionId, transcription);
+
+        TextToSpeechRequest request = new TextToSpeechRequest();
+        request.setText(interviewResponse.getQuestion());
+        TextToSpeechResponse textToSpeechResponse = aiClient.textToSpeech(userId, request);
+
+        String audioBase64 = "";
+        if (textToSpeechResponse != null && textToSpeechResponse.getFilePath() != null) {
+            try {
+                Path path = Paths.get(textToSpeechResponse.getFilePath());
+                byte[] audioBytes = Files.readAllBytes(path);
+                String base64Audio = Base64.getEncoder().encodeToString(audioBytes);
+                audioBase64 = "data:audio/mpeg;base64," + base64Audio;
+                log.info("Successfully encoded audio file to Base64 for session: {}", sessionId);
+            } catch (Exception e) {
+                log.warn("Failed to read or encode audio file for session {}: {}", sessionId, e.getMessage());
+                audioBase64 = "";
+            }
+        }
 
         // Save feedback and score for the answered question
         if (interviewResponse.getFeedback() != null) {
@@ -134,6 +179,7 @@ public class InterviewService {
                 .sessionStatus(session.getStatus().name())
                 .feedback(interviewResponse.getFeedback())
                 .nextQuestion(nextQuestionText)
+                .audioBase64(audioBase64)
                 .build();
     }
 

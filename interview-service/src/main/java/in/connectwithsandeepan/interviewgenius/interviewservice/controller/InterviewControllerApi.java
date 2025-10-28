@@ -17,6 +17,7 @@ import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -86,7 +87,10 @@ public interface InterviewControllerApi {
     })
     ResponseEntity<QuestionDto> getFirstQuestion(
             @Parameter(description = "Unique identifier of the interview session", required = true, example = "session123")
-            @PathVariable @NotBlank(message = "Session ID cannot be empty") String sessionId
+            @PathVariable @NotBlank(message = "Session ID cannot be empty") String sessionId,
+
+            @Parameter(description = "User ID from authentication token", required = true, hidden = true)
+            @RequestHeader("X-User-Id") String userId
     );
 
     @Operation(
@@ -190,11 +194,11 @@ public interface InterviewControllerApi {
             )
             @RequestParam("file") MultipartFile file,
 
-            @Parameter(description = "Unique identifier of the user", required = true, example = "user123")
-            @RequestParam("userId") @NotBlank(message = "User ID cannot be empty") String userId,
+            @Parameter(description = "User ID from authentication token", required = true, hidden = true)
+            @RequestHeader("X-User-Id") String userId,
 
-            @Parameter(description = "Name of the user", required = true, example = "John Doe")
-            @RequestParam("userName") @NotBlank(message = "User name cannot be empty") String userName
+            @Parameter(description = "User email from authentication token", required = true, hidden = true)
+            @RequestHeader("X-User-Email") String email
     );
 
     @Operation(

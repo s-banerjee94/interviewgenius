@@ -37,6 +37,8 @@ spring:
       audio:
         transcription:
           api-key: ${OPENAI_API_KEY}
+        speech:
+          api-key: ${OPENAI_API_KEY}
 
 # Interview configuration
 interview:
@@ -44,6 +46,13 @@ interview:
     file-path:
       for-interview: ${INTERVIEW_PROMPT_PATH:file:./ai-service/prompt/interview-chatclient-anthropic-1.st}
       for-resume: ${RESUME_PROMPT_PATH:file:./ai-service/prompt/resume-parser.st}
+
+# Text-to-Speech configuration
+tts:
+  output:
+    directory: ${TTS_OUTPUT_DIR:./uploads/audio}
+  model: ${TTS_MODEL:tts-1}  # Options: tts-1 (standard), tts-1-hd (high definition)
+  default-voice: ${TTS_DEFAULT_VOICE:alloy}  # Options: alloy, echo, fable, onyx, nova, shimmer
 
 
 # Eureka client settings
